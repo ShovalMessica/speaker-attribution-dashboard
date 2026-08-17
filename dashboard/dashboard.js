@@ -12,20 +12,9 @@
     .replaceAll("'", "&#039;");
 
   document.getElementById("description").textContent = data.description;
-  document.getElementById("research-goal-list").innerHTML = data.research_goal.criteria
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
-    .join("");
-  document.getElementById("research-goal-note").textContent = data.research_goal.note;
   document.getElementById("screening-shortlist").innerHTML =
     `<strong>Top screening shortlist (${data.screening_candidates.length}):</strong> ` +
     data.screening_candidates.map((number) => `Setup ${number}`).join(", ");
-
-  document.getElementById("shared-setup-list").innerHTML = data.shared_setup
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
-    .join("");
-  document.getElementById("dataset-construction-list").innerHTML = data.dataset_construction
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
-    .join("");
 
   document.querySelector("#setup-table tbody").innerHTML = data.setups.map((row) => `
     <tr class="${row.meets_screening_target ? "goal-match" : ""}">
