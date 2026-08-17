@@ -103,6 +103,173 @@
     .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
 
+  const weekly = data.weekly_report;
+  document.getElementById("weekly-heading").textContent = weekly.title;
+  document.getElementById("weekly-subtitle").textContent = weekly.subtitle;
+  document.getElementById("weekly-headline-counts").innerHTML = weekly.headline_counts
+    .map((item) => `
+      <div class="weekly-stat">
+        <strong>${escapeHtml(item.value)}</strong>
+        <span>${escapeHtml(item.label)}</span>
+      </div>
+    `).join("");
+
+  const task = weekly.task_example;
+  document.getElementById("weekly-task-example").innerHTML = `
+    <div class="weekly-task-grid">
+      <div class="weekly-task-input">
+        <span class="weekly-mini-label">Target</span>
+        <strong>${escapeHtml(task.target)}</strong>
+        <span class="weekly-mini-label">Candidates</span>
+        <pre>${task.candidates.map(escapeHtml).join("\n")}</pre>
+      </div>
+      <div class="weekly-task-transcript">
+        <span class="weekly-mini-label">Transcript clue</span>
+        ${task.transcript.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+      </div>
+      <div class="weekly-task-output">
+        <span class="weekly-mini-label">Expected output</span>
+        <strong>${escapeHtml(task.answer)}</strong>
+      </div>
+    </div>
+    <p class="weekly-task-note">${escapeHtml(task.explanation)}</p>
+  `;
+
+  document.getElementById("weekly-timeline").innerHTML = weekly.timeline
+    .map((item) => `
+      <article class="weekly-timeline-step">
+        <span class="weekly-step-number">${escapeHtml(item.step)}</span>
+        <h4>${escapeHtml(item.title)}</h4>
+        <p>${escapeHtml(item.text)}</p>
+      </article>
+    `).join("");
+
+  const prompt = weekly.prompt_story;
+  document.getElementById("weekly-prompt-story").innerHTML = `
+    <div class="weekly-prompt-grid">
+      <div class="weekly-prompt-anatomy">
+        <h4>Prompt anatomy</h4>
+        <ol>${prompt.anatomy.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
+        <p>${escapeHtml(prompt.finalization_note)}</p>
+      </div>
+      <details class="weekly-prompt-example">
+        <summary>Open compact prompt example</summary>
+        <pre>${escapeHtml(prompt.example)}</pre>
+      </details>
+    </div>
+    <div class="weekly-prompt-lessons">
+      ${prompt.lessons.map((lesson) => `
+        <article>
+          <strong>${escapeHtml(lesson.change)}</strong>
+          <span>${escapeHtml(lesson.result)}</span>
+          <p>Decision: ${escapeHtml(lesson.decision)}</p>
+        </article>
+      `).join("")}
+    </div>
+  `;
+
+  document.getElementById("weekly-search-waves").innerHTML = weekly.search_waves
+    .map((wave) => `
+      <article class="weekly-wave">
+        <h4>${escapeHtml(wave.title)}</h4>
+        <p class="weekly-wave-question">${escapeHtml(wave.question)}</p>
+        <div class="weekly-chip-list">
+          ${wave.items.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+        </div>
+        <p class="weekly-wave-result">${escapeHtml(wave.result)}</p>
+      </article>
+    `).join("");
+
+  const stackedBar = (row) => `
+    <article class="weekly-behavior-row">
+      <div class="weekly-behavior-label">
+        <strong>${escapeHtml(row.label)}</strong>
+        <span>${escapeHtml(row.detail)}</span>
+      </div>
+      <div class="weekly-stacked-bar" aria-label="${escapeHtml(row.label)} behavior">
+        <span class="bar-correct" style="width:${Number(row.correct) * 100}%">${pct(row.correct)}</span>
+        <span class="bar-wrong" style="width:${Number(row.wrong) * 100}%">${pct(row.wrong)}</span>
+        <span class="bar-unknown" style="width:${Number(row.abstain) * 100}%">${pct(row.abstain)}</span>
+      </div>
+    </article>
+  `;
+  document.getElementById("weekly-behavior-bars").innerHTML = `
+    ${weekly.behavior_comparison.map(stackedBar).join("")}
+    <div class="weekly-bar-legend">
+      <span><i class="legend-correct"></i>Correct</span>
+      <span><i class="legend-wrong"></i>Wrong ID</span>
+      <span><i class="legend-unknown"></i>Abstain</span>
+    </div>
+  `;
+  document.getElementById("weekly-setup-shift").innerHTML = `
+    <h4>What changed?</h4>
+    <dl>
+      <dt>Setup 20</dt><dd>${escapeHtml(weekly.setup_shift.setup_20)}</dd>
+      <dt>Setup 31</dt><dd>${escapeHtml(weekly.setup_shift.setup_31)}</dd>
+    </dl>
+    <p>${escapeHtml(weekly.setup_shift.takeaway)}</p>
+  `;
+  document.getElementById("weekly-ner-note").textContent = weekly.ner_comparison_note;
+
+  document.getElementById("weekly-reasoning-examples").innerHTML = weekly.reasoning_examples
+    .map((example) => `
+      <article class="weekly-reasoning-card ${escapeHtml(example.kind)}">
+        <div class="reasoning-card-heading">
+          <span>${example.kind === "correct" ? "Correct path" : "Wrong path"}</span>
+          <h4>${escapeHtml(example.title)}</h4>
+        </div>
+        <div class="reasoning-transcript">
+          ${example.transcript.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+        </div>
+        <ol>
+          ${example.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
+        </ol>
+        <strong class="reasoning-final">Final: ${escapeHtml(example.final)}</strong>
+        <small>${escapeHtml(example.source_setup)} · ${escapeHtml(example.source_example_id)}</small>
+      </article>
+    `).join("");
+  document.getElementById("weekly-error-audit").innerHTML = `
+    <strong>${weekly.error_audit.reasoning_supported}/${weekly.error_audit.wrong_total}</strong>
+    <span>wrong Setup 31 outputs were reasoning-supported semantic errors.</span>
+    <p>${escapeHtml(weekly.error_audit.takeaway)}</p>
+  `;
+
+  const confidence = weekly.confidence;
+  document.getElementById("weekly-confidence-plot").src = confidence.plot;
+  document.getElementById("weekly-confidence-takeaway").textContent = confidence.takeaway;
+  document.getElementById("weekly-confidence").innerHTML = `
+    <div class="weekly-confidence-card">
+      <span>Attribution Setup 31</span>
+      <strong>Correct ${pct(confidence.correct_mean)} ± ${pct(confidence.correct_std)}</strong>
+      <strong>Wrong ${pct(confidence.wrong_mean)} ± ${pct(confidence.wrong_std)}</strong>
+      <small>Medians: ${pct(confidence.correct_median)} vs ${pct(confidence.wrong_median)}</small>
+    </div>
+    <div class="weekly-confidence-card">
+      <span>NER nickname</span>
+      <strong>Correct ${pct(confidence.ner_correct_mean)} ± ${pct(confidence.ner_correct_std)}</strong>
+      <strong>Wrong ${pct(confidence.ner_wrong_mean)} ± ${pct(confidence.ner_wrong_std)}</strong>
+    </div>
+    <div class="weekly-confidence-card emphasis">
+      <span>Probability-only gate · Setup 31</span>
+      <strong>AUROC ${decimal(confidence.auroc)}</strong>
+      <strong>FPR ${pct(confidence.near_90_fpr)} at ~90% TPR</strong>
+    </div>
+  `;
+
+  const current = weekly.current_stage;
+  document.getElementById("weekly-current-stage").innerHTML = `
+    <p>${escapeHtml(current.text)}</p>
+    <div class="weekly-pair-example">
+      <div><span>Evidence</span><strong>${escapeHtml(current.pair_example.evidence)}</strong></div>
+      <div><span>No evidence</span><strong>${escapeHtml(current.pair_example.no_evidence)}</strong></div>
+      <p>${escapeHtml(current.pair_example.note)}</p>
+    </div>
+    <p class="weekly-selected-setups"><strong>Current candidates:</strong> ${current.setup_numbers.map((number) => `Setup ${number}`).join(", ")}</p>
+    <ul class="weekly-pair-validation">
+      ${current.validation.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+    </ul>
+  `;
+
   const selectTab = (tabId) => {
     const selected = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
     if (!selected) return;
