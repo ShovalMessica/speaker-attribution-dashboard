@@ -149,6 +149,157 @@ h1 {
   font-size: 13px;
 }
 
+.task-data-header { margin: 0 0 22px; }
+.task-data-header h2 { margin: 0 0 3px; font-size: 26px; }
+.task-data-header p { margin: 0; color: var(--muted); font-size: 13px; }
+
+.research-question {
+  margin-bottom: 30px;
+  padding: 20px 22px;
+  border: 1px solid #cfe1da;
+  border-left: 4px solid var(--accent);
+  border-radius: 9px;
+  background: #f5faf8;
+}
+.research-question p {
+  margin: 0 0 7px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.research-question strong {
+  display: block;
+  max-width: 980px;
+  font-size: 19px;
+  line-height: 1.42;
+}
+
+.task-data-section { padding: 25px 0; border-top: 1px solid var(--line); }
+.task-data-section h3 { margin: 0 0 10px; font-size: 20px; }
+.task-data-section h4 { margin: 25px 0 9px; font-size: 15px; }
+.task-data-section > p { max-width: 900px; margin: 0 0 16px; color: #465168; }
+.task-definition { font-size: 16px; line-height: 1.55; }
+
+.task-example {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.7fr) minmax(130px, .65fr) minmax(210px, 1fr) minmax(100px, .45fr);
+  gap: 1px;
+  overflow: hidden;
+  margin-top: 17px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--line);
+}
+.task-example > div { min-width: 0; padding: 16px 17px; background: #fff; }
+.task-example-label {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.task-example p { margin: 4px 0; font-size: 12px; }
+.task-example-target strong,
+.task-example-output strong { font-size: 17px; }
+.task-example-candidates code {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  margin-right: 5px;
+  place-items: center;
+  border-radius: 5px;
+  background: #eef3f1;
+  color: var(--accent);
+  font-weight: 750;
+}
+.task-example-output { background: #f2f8f5 !important; }
+.task-example-output strong { color: var(--accent); }
+.output-rule { margin-top: 9px !important; font-size: 12px; }
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.evidence-card {
+  display: flex;
+  min-height: 185px;
+  flex-direction: column;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+.evidence-card > code { align-self: flex-start; color: var(--accent); font-size: 11px; font-weight: 700; }
+.evidence-dialogue { margin: 14px 0; }
+.evidence-dialogue p { margin: 5px 0; color: #344057; font-size: 12px; }
+.evidence-result { margin: auto 0 0; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+
+.task-data-table-wrap { max-width: 900px; }
+.pair-table th,
+.pair-table td { padding: 10px 13px; text-align: left; white-space: normal; }
+.pair-table th { font-size: 11px; }
+.pair-table td { font-size: 12px; }
+.variant-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 750;
+}
+.variant-badge.evidence { background: #dff3e9; color: #126149; }
+.variant-badge.no-evidence { background: #eef0f4; color: #4f596d; }
+.pair-note { margin-top: 9px !important; color: var(--muted) !important; font-size: 12px; }
+
+.data-source-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.data-source-card { padding: 17px; border: 1px solid var(--line); border-radius: 8px; }
+.data-source-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.data-source-card h4 { margin: 0; }
+.data-source-card > strong { display: block; margin: 13px 0 10px; font-size: 14px; }
+.data-source-card > code { display: block; overflow-wrap: anywhere; color: var(--muted); font-size: 10px; }
+.source-status { padding: 3px 8px; border-radius: 999px; font-size: 9px; font-weight: 750; text-transform: uppercase; }
+.source-status.complete { background: #dff3e9; color: #126149; }
+.source-status.planned { background: #f0f1f4; color: #667085; }
+
+.composition-panel {
+  display: grid;
+  grid-template-columns: minmax(190px, .8fr) minmax(430px, 1.6fr);
+  gap: 18px 30px;
+  align-items: center;
+  margin-top: 11px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fafbfc;
+}
+.composition-panel h4 { margin: 0 0 4px; }
+.composition-panel > div > p { margin: 0; color: var(--muted); font-size: 11px; }
+.composition-visual { display: flex; align-items: center; gap: 22px; }
+.evidence-donut {
+  display: grid;
+  width: 128px;
+  height: 128px;
+  flex: 0 0 128px;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(#176b55 0 61.97%, #70aa96 61.97% 99.02%, #c9ddd5 99.02% 100%);
+  position: relative;
+}
+.evidence-donut::after { content: ""; position: absolute; inset: 21px; border-radius: 50%; background: #fafbfc; }
+.evidence-donut span { z-index: 1; color: var(--muted); font-size: 9px; text-align: center; text-transform: uppercase; }
+.evidence-donut b { display: block; color: var(--ink); font-size: 21px; line-height: 1; }
+.composition-legend { margin: 0; padding: 0; list-style: none; }
+.composition-legend li { display: grid; grid-template-columns: 10px 28px 1fr; gap: 7px; align-items: center; margin: 7px 0; color: #465168; font-size: 11px; }
+.legend-swatch { width: 9px; height: 9px; border-radius: 2px; }
+.legend-swatch.self-id { background: #c9ddd5; }
+.legend-swatch.greeting { background: #70aa96; }
+.legend-swatch.question { background: #176b55; }
+.composition-pending { grid-column: 1 / -1; margin: -3px 0 0; padding-top: 11px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+
 .screening-shortlist {
   margin: 0 0 12px;
   color: #465168;
@@ -743,4 +894,10 @@ tbody tr:hover { background: #f8fafb; }
   .weekly-pair-validation { grid-template-columns: 1fr; }
   .weekly-behavior-label { display: block; }
   .weekly-behavior-label span { display: block; }
+  .task-example,
+  .evidence-grid,
+  .data-source-grid,
+  .composition-panel { grid-template-columns: 1fr; }
+  .composition-visual { align-items: flex-start; }
+  .composition-pending { grid-column: 1; }
 }
