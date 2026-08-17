@@ -262,6 +262,69 @@ tbody tr:hover { background: #f8fafb; }
   font-size: 13px;
 }
 
+.factor-method-note {
+  margin: 10px 2px 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.factor-analysis-figure {
+  margin: 0;
+  padding: 0;
+}
+
+.factor-analysis-panels { display: grid; gap: 14px; }
+.factor-analysis-panel {
+  padding: 16px;
+  border: 1px solid #e0e5eb;
+  border-radius: 10px;
+  background: #fff;
+}
+.factor-analysis-panel > header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 7px; }
+.factor-analysis-panel h3 { margin: 0; font-size: 17px; }
+.factor-analysis-panel header > span { flex: 0 0 auto; padding: 4px 8px; border-radius: 12px; background: #edf4f1; color: #176b55; font-size: 9px; font-weight: 750; }
+.factor-change-direction { display: flex; align-items: center; gap: 9px; margin: 0 0 11px; color: #35445d; font-size: 11px; font-weight: 700; }
+.factor-change-direction span { padding: 5px 9px; border: 1px solid #dfe5eb; border-radius: 5px; background: #f7f9fb; }
+.factor-change-direction span:last-child { border-color: #acd1c4; background: #eef7f3; color: #176b55; }
+.factor-change-direction b { color: #7b8798; font-size: 15px; }
+.factor-analysis-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 12px; }
+.factor-analysis-grid.single { grid-template-columns: minmax(0, 540px); }
+.factor-chart-card { margin: 0; padding: 11px; border: 1px solid #e5e8ed; border-radius: 7px; background: #fbfcfd; }
+.factor-chart-card h4 { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin: 0 0 5px; color: #465168; font-size: 11px; }
+.factor-bar-legend { display: inline-flex; flex: 0 0 auto; gap: 4px; align-items: center; color: var(--muted); font-size: 8px; font-weight: 500; }
+.factor-bar-legend i { width: 9px; height: 9px; margin-left: 4px; border-radius: 2px; background: #9aa8b8; }
+.factor-bar-legend i.with { background: var(--accent); }
+.factor-chart-card svg { display: block; width: 100%; height: auto; }
+.factor-chart-card figcaption { display: grid; gap: 3px; margin-top: 3px; padding-top: 7px; border-top: 1px solid #e3e7ec; }
+.factor-chart-card figcaption strong { font-size: 12px; }
+.factor-chart-card figcaption span { color: var(--muted); font-size: 9px; }
+.factor-metric-grid,
+.factor-roc-grid { stroke: #e2e6eb; stroke-width: 1; }
+.factor-metric-bar.baseline { fill: #9ca6b5; }
+.factor-metric-bar.variant { fill: #176b55; }
+.factor-metric-bar.average { stroke: #172033; stroke-width: 1; }
+.factor-metric-tick,
+.factor-metric-group,
+.factor-roc-tick { fill: #758093; font-size: 9px; }
+.factor-metric-axis,
+.factor-roc-axis { fill: #465168; font-size: 10px; font-weight: 750; }
+.factor-roc-chance { stroke: #c4cbd5; stroke-width: 1; stroke-dasharray: 4 4; }
+.factor-roc-line { fill: none; stroke: var(--pair-color); stroke-width: 2; stroke-linejoin: round; }
+.factor-roc-line.baseline { stroke-dasharray: 6 4; opacity: .58; }
+.factor-roc-line.variant { stroke-width: 2.5; }
+.factor-roc-operating { fill: var(--pair-color); stroke: #fff; stroke-width: 1; }
+.factor-roc-operating.baseline { opacity: .6; }
+.factor-roc-pair-label { fill: #465168; font-size: 9px; }
+.factor-roc-legend-line { stroke: #647087; stroke-width: 2; }
+.factor-roc-legend-line.baseline { stroke-dasharray: 6 4; opacity: .65; }
+.factor-roc-legend-text,
+.factor-roc-auc { fill: #647087; font-size: 9px; }
+.factor-roc-auc-value { fill: #172033; font-size: 12px; font-weight: 800; }
+.factor-roc-consistency { fill: #647087; font-size: 9px; font-weight: 650; }
+.factor-takeaway { margin: 10px 2px 0; padding-left: 10px; border-left: 3px solid #176b55; color: #405066; font-size: 10px; }
+.factor-analysis-figure > figcaption { margin-top: 10px; color: #536076; font-size: 11px; }
+
+
 .weekly-report {
   --weekly-blue: #315f87;
   --weekly-soft-blue: #edf4f8;
@@ -269,6 +332,22 @@ tbody tr:hover { background: #f8fafb; }
   --weekly-green: #429c78;
   --weekly-gray: #aab3c2;
 }
+
+.weekly-simple-header { margin: 4px 0 22px; }
+.weekly-simple-header h2 { margin: 0 0 4px; font-size: 27px; }
+.weekly-simple-header p { margin: 0; color: var(--muted); }
+.weekly-simple-section { padding: 20px 0; border-top: 1px solid var(--line); }
+.weekly-simple-section h3 { margin: 0 0 9px; font-size: 18px; }
+.weekly-simple-section > p { margin: -4px 0 13px; color: var(--muted); font-size: 11px; }
+#weekly-task-overview h4 { margin: 16px 0 7px; font-size: 13px; }
+#weekly-task-overview ul,
+#weekly-goals ul { margin: 0; padding-left: 20px; color: #405066; font-size: 12px; }
+#weekly-task-overview li + li,
+#weekly-goals li + li { margin-top: 5px; }
+#weekly-counterfactual > p { margin: 0 0 10px; color: #405066; font-size: 12px; }
+.weekly-view .research-goal,
+.weekly-view .protocol,
+.weekly-view .footnote { display: none; }
 
 .weekly-hero {
   padding: 26px 28px;
@@ -355,6 +434,39 @@ tbody tr:hover { background: #f8fafb; }
 
 .weekly-section-heading h3 { margin: 1px 0 1px; font-size: 18px; }
 .weekly-section-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+
+.weekly-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.weekly-overview-grid > div + div { padding-left: 24px; border-left: 1px solid var(--line); }
+.weekly-overview-grid h4 { margin: 0 0 8px; font-size: 14px; }
+.weekly-overview-grid ul { margin: 0; padding-left: 19px; color: #405066; font-size: 12px; }
+.weekly-overview-grid li + li { margin-top: 6px; }
+
+.weekly-goal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.weekly-goal-grid article { padding: 12px 14px; border-radius: 7px; background: #f5f8fa; }
+.weekly-goal-grid h4 { margin: 0 0 4px; font-size: 12px; }
+.weekly-goal-grid p { margin: 0; color: #465168; font-size: 11px; }
+
+.weekly-factor-stories { display: grid; gap: 16px; }
+.weekly-factor-story { padding-top: 16px; border-top: 1px solid var(--line); }
+.weekly-factor-story:first-child { padding-top: 0; border-top: 0; }
+.weekly-factor-story > h4 { margin: 0 0 5px; font-size: 15px; }
+.weekly-factor-story > p { margin: 3px 0; color: #405066; font-size: 11px; }
+.weekly-factor-plots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 10px; }
+.weekly-factor-plots.single { grid-template-columns: minmax(0, 540px); }
+.weekly-factor-plots .factor-chart-card h5 { margin: 0 0 4px; color: #465168; font-size: 10px; }
+
+.weekly-deep-dive-plots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.weekly-deep-dive-plots figure { margin: 0; overflow: hidden; border: 1px solid #e6e9ee; }
+.weekly-deep-dive-plots img { display: block; width: 100%; margin-top: -6%; }
+.weekly-deep-dive > p { margin: 11px 1px 0; color: #405066; font-size: 11px; }
 
 .weekly-timeline {
   display: grid;
@@ -513,6 +625,7 @@ tbody tr:hover { background: #f8fafb; }
 .reasoning-transcript p { margin: 2px 0; font: 11px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
 .weekly-reasoning-card ol { margin: 11px 18px 8px 32px; padding: 0; color: #465168; font-size: 11px; }
 .weekly-reasoning-card li { margin-bottom: 5px; }
+.weekly-reasoning-summary { margin: 10px 14px; color: #405066; font-size: 11px; }
 .reasoning-final { display: block; margin: 0 14px 7px; color: var(--weekly-green); }
 .wrong .reasoning-final { color: #b74745; }
 .weekly-reasoning-card small { display: block; padding: 0 14px 12px; color: #8a93a3; font-size: 9px; }
@@ -617,6 +730,12 @@ tbody tr:hover { background: #f8fafb; }
   .weekly-confidence-layout,
   .weekly-confidence,
   .weekly-pair-example { grid-template-columns: 1fr; }
+  .weekly-overview-grid,
+  .weekly-goal-grid,
+  .weekly-factor-plots,
+  .weekly-deep-dive-plots { grid-template-columns: 1fr; }
+  .weekly-overview-grid > div + div { padding-left: 0; padding-top: 16px; border-left: 0; border-top: 1px solid var(--line); }
+  .factor-analysis-grid { grid-template-columns: 1fr; }
   .weekly-timeline-step { padding: 0 0 14px 38px; }
   .weekly-timeline-step:not(:last-child)::after { display: none; }
   .weekly-step-number { position: absolute; left: 0; top: 0; }

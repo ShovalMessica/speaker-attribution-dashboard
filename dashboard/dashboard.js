@@ -55,6 +55,126 @@
     </tr>
   `).join("");
 
+  const factorData = data.factor_effects;
+  document.getElementById("factor-method-note").textContent = factorData.method_note;
+  const factorViews = [
+    { id: "distractor_windows", title: "Distractor-rich windows across chunk sizes", baselineLabel: "Ordinary valid window", variantLabel: "Same-length distractor-rich window", metric: "unknown", metricLabel: "UNKNOWN rate", takeaway: "The model answered more often. Nearly all additional decisions were correct; wrong-ID was inconsistent." },
+    { id: "participant_scope", title: "Participant-list size", baselineLabel: "Identified speakers who spoke", variantLabel: "Full meeting participant list", metric: "correct", metricLabel: "Accuracy", takeaway: "A broader choice set reduced accuracy in both comparisons." },
+    { id: "candidate_placement", title: "Participant-list position", baselineLabel: "List before transcript", variantLabel: "List after transcript", metric: "wrong", metricLabel: "Wrong-ID rate", takeaway: "Moving the same list after the transcript increased wrong-ID in both comparisons." },
+    { id: "final_cue", title: "Prompt decision rule", baselineLabel: "Conservative review cue", variantLabel: "Most-likely-participant cue", metric: "unknown", metricLabel: "UNKNOWN rate", takeaway: "The permissive cue converted abstentions into both correct and wrong participant answers." },
+    { id: "reasoning_budget", title: "Reasoning budget", baselineLabel: "Lower token allowance", variantLabel: "Higher token allowance", metric: "unknown", metricLabel: "UNKNOWN rate", takeaway: "The effect was weak: one comparison changed and one was effectively unchanged." },
+    { id: "sampling_policy", title: "Sampling entropy and seed", baselineLabel: "Original sampling", variantLabel: "Entropy or seed changed", metric: "near_90_fpr", metricLabel: "FPR near 90% TPR", takeaway: "Behavioral accuracy barely moved, but probability separation changed substantially." },
+  ];
+  const strongFactorIds = new Set(["distractor_windows", "participant_scope", "candidate_placement", "final_cue"]);
+  const strongFactorsOnly = new URLSearchParams(window.location.search).get("factors") === "strong";
+  const visibleFactorViews = strongFactorsOnly
+    ? factorViews.filter((view) => strongFactorIds.has(view.id))
+    : factorViews;
+  if (strongFactorsOnly) {
+    document.getElementById("factor-effects-heading").textContent = "Most consistent factor effects";
+    document.getElementById("factor-effects-summary").textContent = "Four factors with repeated same-direction behavioral shifts.";
+  }
+  const factorById = Object.fromEntries(factorData.factors.map((factor) => [factor.id, factor]));
+  const pairColors = ["#176b55", "#315f87", "#b05d5b"];
+  const signedPp = (value) => `${Number(value) > 0 ? "+" : ""}${Number(value).toFixed(1)} pp`;
+  const factorMetricValue = (comparison, arm, metric) => {
+    if (["correct", "wrong", "unknown"].includes(metric)) return Number(comparison[arm][metric]);
+    if (metric === "near_90_fpr") return Number(comparison.probability[arm].near_90_tpr.fpr);
+    if (metric === "auroc") return Number(comparison.probability[arm].auroc);
+    throw new Error(`Unsupported factor metric: ${metric}`);
+  };
+  const averageFactorMetric = (factor, arm, metric) => factor.comparisons.reduce(
+    (sum, comparison) => sum + factorMetricValue(comparison, arm, metric), 0
+  ) / factor.comparisons.length;
+  const hasConsistentRocDirection = (factor) => {
+    const directions = factor.comparisons.map((comparison) => Math.sign(
+      comparison.probability.variant.auroc - comparison.probability.baseline.auroc
+    ));
+    return directions.every((direction) => direction === directions[0]);
+  };
+  const metricBarSvg = (factor, view) => {
+    const groups = factor.comparisons.map((comparison) => ({
+      label: `S${comparison.baseline_setup}→${comparison.variant_setup}`,
+      baseline: factorMetricValue(comparison, "baseline", view.metric),
+      variant: factorMetricValue(comparison, "variant", view.metric),
+    }));
+    groups.push({
+      label: "Average",
+      baseline: averageFactorMetric(factor, "baseline", view.metric),
+      variant: averageFactorMetric(factor, "variant", view.metric),
+      average: true,
+    });
+    const plot = { left: 42, right: 405, top: 18, bottom: 214 };
+    const observedMax = Math.max(...groups.flatMap((group) => [group.baseline, group.variant]));
+    const yMax = Math.min(1, Math.max(.2, Math.ceil((observedMax + .05) * 10) / 10));
+    const y = (value) => plot.bottom - Number(value) / yMax * (plot.bottom - plot.top);
+    const yTicks = [0, .25, .5, .75, 1].map((position) => position * yMax);
+    const groupWidth = (plot.right - plot.left) / groups.length;
+    const barWidth = Math.min(24, groupWidth * 0.28);
+    return `<svg viewBox="0 0 430 255" role="img" aria-label="${escapeHtml(view.metricLabel)} before and after factor change">
+      ${yTicks.map((tick) => `<line class="factor-metric-grid" x1="${plot.left}" y1="${y(tick)}" x2="${plot.right}" y2="${y(tick)}"/><text class="factor-metric-tick" x="35" y="${y(tick) + 4}" text-anchor="end">${Math.round(100 * tick)}%</text>`).join("")}
+      ${groups.map((group, index) => {
+        const center = plot.left + groupWidth * (index + .5);
+        const baselineHeight = plot.bottom - y(group.baseline);
+        const variantHeight = plot.bottom - y(group.variant);
+        return `<rect class="factor-metric-bar baseline ${group.average ? "average" : ""}" x="${center - barWidth - 2}" y="${y(group.baseline)}" width="${barWidth}" height="${baselineHeight}"><title>Baseline: ${pct(group.baseline)}</title></rect>
+          <rect class="factor-metric-bar variant ${group.average ? "average" : ""}" x="${center + 2}" y="${y(group.variant)}" width="${barWidth}" height="${variantHeight}"><title>Changed: ${pct(group.variant)}</title></rect>
+          <text class="factor-metric-group" x="${center}" y="235" text-anchor="middle">${group.label}</text>`;
+      }).join("")}
+      <text class="factor-metric-axis" transform="translate(10 118) rotate(-90)" text-anchor="middle">${escapeHtml(view.metricLabel)}</text>
+    </svg>`;
+  };
+  const rocSvg = (factor) => {
+    const plot = { left: 42, right: 306, top: 22, bottom: 228 };
+    const x = (value) => plot.left + Number(value) * (plot.right - plot.left);
+    const y = (value) => plot.bottom - Number(value) * (plot.bottom - plot.top);
+    const path = (points) => points.map((point, index) => `${index ? "L" : "M"}${x(point.tpr).toFixed(1)},${y(point.fpr).toFixed(1)}`).join(" ");
+    const meanBaselineAuc = averageFactorMetric(factor, "baseline", "auroc");
+    const meanVariantAuc = averageFactorMetric(factor, "variant", "auroc");
+    const improvedPairs = factor.comparisons.filter(
+      (comparison) => comparison.probability.variant.auroc > comparison.probability.baseline.auroc
+    ).length;
+    return `<svg viewBox="0 0 470 270" role="img" aria-label="Matched TPR-FPR curves">
+      ${[0, .5, 1].map((tick) => `<line class="factor-roc-grid" x1="${x(tick)}" y1="${plot.top}" x2="${x(tick)}" y2="${plot.bottom}"/><line class="factor-roc-grid" x1="${plot.left}" y1="${y(tick)}" x2="${plot.right}" y2="${y(tick)}"/><text class="factor-roc-tick" x="${x(tick)}" y="246" text-anchor="middle">${tick.toFixed(1)}</text><text class="factor-roc-tick" x="34" y="${y(tick) + 4}" text-anchor="end">${tick.toFixed(1)}</text>`).join("")}
+      <line class="factor-roc-chance" x1="${x(0)}" y1="${y(0)}" x2="${x(1)}" y2="${y(1)}"/>
+      ${factor.comparisons.map((comparison, index) => {
+        const color = pairColors[index];
+        const baseline = comparison.probability.baseline;
+        const variant = comparison.probability.variant;
+        return `<path class="factor-roc-line baseline" style="--pair-color:${color}" d="${path(baseline.roc_points)}"><title>Setup ${comparison.baseline_setup} · AUROC ${decimal(baseline.auroc)}</title></path>
+          <path class="factor-roc-line variant" style="--pair-color:${color}" d="${path(variant.roc_points)}"><title>Setup ${comparison.variant_setup} · AUROC ${decimal(variant.auroc)}</title></path>
+          <circle class="factor-roc-operating baseline" style="--pair-color:${color}" cx="${x(baseline.near_90_tpr.tpr)}" cy="${y(baseline.near_90_tpr.fpr)}" r="3"/>
+          <circle class="factor-roc-operating variant" style="--pair-color:${color}" cx="${x(variant.near_90_tpr.tpr)}" cy="${y(variant.near_90_tpr.fpr)}" r="3"/>
+          <rect x="330" y="${43 + index * 30}" width="9" height="9" rx="2" fill="${color}"/><text class="factor-roc-pair-label" x="345" y="${51 + index * 30}">${comparison.comparison_label ? escapeHtml(comparison.comparison_label) + " · " : ""}S${comparison.baseline_setup}→${comparison.variant_setup}</text>`;
+      }).join("")}
+      <line class="factor-roc-legend-line baseline" x1="330" y1="150" x2="352" y2="150"/><text class="factor-roc-legend-text" x="358" y="154">Baseline</text>
+      <line class="factor-roc-legend-line variant" x1="330" y1="170" x2="352" y2="170"/><text class="factor-roc-legend-text" x="358" y="174">Changed</text>
+      <text class="factor-roc-auc" x="330" y="203">Mean AUROC · higher better</text><text class="factor-roc-auc-value" x="330" y="220">${decimal(meanBaselineAuc)} → ${decimal(meanVariantAuc)}</text>
+      <text class="factor-roc-consistency" x="330" y="239">Improved in ${improvedPairs}/${factor.comparisons.length} pairs</text>
+      <text class="factor-roc-axis" x="${(plot.left + plot.right) / 2}" y="266" text-anchor="middle">TPR</text><text class="factor-roc-axis" transform="translate(10 125) rotate(-90)" text-anchor="middle">FPR</text>
+    </svg>`;
+  };
+  document.getElementById("factor-analysis-panels").innerHTML = visibleFactorViews.map((view) => {
+    const factor = factorById[view.id];
+    const baselineMean = averageFactorMetric(factor, "baseline", view.metric);
+    const variantMean = averageFactorMetric(factor, "variant", view.metric);
+    const delta = 100 * (variantMean - baselineMean);
+    const direction = Math.sign(delta);
+    const consistent = factor.comparisons.filter((comparison) => Math.sign(
+      factorMetricValue(comparison, "variant", view.metric) - factorMetricValue(comparison, "baseline", view.metric)
+    ) === direction).length;
+    const showRoc = !strongFactorsOnly || hasConsistentRocDirection(factor);
+    return `<section class="factor-analysis-panel">
+      <header><h3>${escapeHtml(view.title)}</h3><span>${factor.comparisons.length} matched pairs</span></header>
+      <div class="factor-change-direction"><span>${escapeHtml(view.baselineLabel)}</span><b aria-hidden="true">→</b><span>${escapeHtml(view.variantLabel)}</span></div>
+      <div class="factor-analysis-grid ${showRoc ? "" : "single"}">
+        <figure class="factor-chart-card"><h4><span>${escapeHtml(view.metricLabel)} · all 50 examples</span><span class="factor-bar-legend"><i class="without"></i>Baseline <i class="with"></i>Changed</span></h4>${metricBarSvg(factor, view)}<figcaption><strong>${pct(baselineMean)} → ${pct(variantMean)} (${signedPp(delta)})</strong><span>${consistent}/${factor.comparisons.length} pairs moved in the same direction</span></figcaption></figure>
+        ${showRoc ? `<figure class="factor-chart-card"><h4>TPR–FPR · lower curve is better · UNKNOWN excluded</h4>${rocSvg(factor)}</figure>` : ""}
+      </div>
+      <p class="factor-takeaway">${escapeHtml(view.takeaway)}</p>
+    </section>`;
+  }).join("");
+
   const chosenRows = data.full_data_results.map((setup) => ({
     metrics: setup.full,
     setupNumber: setup.setup_number,
@@ -104,175 +224,114 @@
     .join("");
 
   const weekly = data.weekly_report;
-  document.getElementById("weekly-heading").textContent = weekly.title;
-  document.getElementById("weekly-subtitle").textContent = weekly.subtitle;
-  document.getElementById("weekly-headline-counts").innerHTML = weekly.headline_counts
-    .map((item) => `
-      <div class="weekly-stat">
-        <strong>${escapeHtml(item.value)}</strong>
-        <span>${escapeHtml(item.label)}</span>
-      </div>
-    `).join("");
+  document.getElementById("weekly-task-overview").innerHTML = `
+    <ul>
+      <li><strong>Task:</strong> map one anonymous Speaker N to a meeting participant, or output UNKNOWN.</li>
+      <li><strong>Input:</strong> human transcript, participant list, and one target speaker.</li>
+      <li><strong>Model:</strong> pinned Qwen3-8B with native reasoning.</li>
+      <li><strong>Data:</strong> matched evidence-present and no-evidence examples.</li>
+    </ul>
+    <h4>Difference from NER</h4>
+    <ul>
+      <li><strong>Reasoning vs Instruct:</strong> NER produced a direct, single-token answer. Attribution includes variable-length reasoning, so the decision may develop across several generated tokens and requires a different mechanistic analysis.</li>
+      <li><strong>Counterfactual pairs:</strong> NER had a natural clean/corrupted pair created by corrupting one name. Attribution has no obvious “corruption”, so we must separately design contrasts for correctness decision.</li>
+    </ul>
+  `;
 
-  const task = weekly.task_example;
-  document.getElementById("weekly-task-example").innerHTML = `
-    <div class="weekly-task-grid">
-      <div class="weekly-task-input">
-        <span class="weekly-mini-label">Target</span>
-        <strong>${escapeHtml(task.target)}</strong>
-        <span class="weekly-mini-label">Candidates</span>
-        <pre>${task.candidates.map(escapeHtml).join("\n")}</pre>
+  const weeklyGoals = [
+    ["Behavioral regime", "Accuracy ≥30% · Wrong-ID ≥30% · UNKNOWN ≤40%"],
+    ["Weak probability baseline", "AUROC <0.8 · FPR ≥70–80% near 90% TPR"],
+    ["No-evidence regime", "20–30% false attribution · 70–80% correct rejection"],
+    ["Data sufficiency", "Enough counterfactual pairs and correct/wrong proposals for causal and gate analysis"],
+  ];
+  document.getElementById("weekly-goals").innerHTML = `<ul>${weeklyGoals.map(([title, text]) => `
+    <li><strong>${escapeHtml(title)}:</strong> ${escapeHtml(text)}</li>
+  `).join("")}</ul>`;
+
+  const weeklyFactorStories = [
+    {
+      view: factorViews.find((view) => view.id === "distractor_windows"),
+      description: "At each tested chunk size, replace an ordinary valid window with a same-length window containing more natural mentions of other participants.",
+      effect: "The model made more decisions: UNKNOWN fell 63.3% → 44.0%, with nearly all additional decisions correct. Confidence separation improved in 3/3 pairs (AUROC 0.425 → 0.740).",
+      showRoc: true,
+    },
+    {
+      view: factorViews.find((view) => view.id === "participant_scope"),
+      description: "Candidates are either only identified participants who spoke, or everyone listed for the meeting.",
+      effect: "The full meeting list made attribution harder: accuracy fell 45.0% → 26.0% in 2/2 matched comparisons.",
+      showRoc: false,
+    },
+    {
+      view: factorViews.find((view) => view.id === "candidate_placement"),
+      description: "Keep the participant list unchanged, but move it from before the transcript to after it.",
+      effect: "Placing the list after the transcript increased wrong-ID from 34.0% → 39.0% in 2/2 matched comparisons.",
+      showRoc: false,
+    },
+  ];
+  document.getElementById("weekly-factor-stories").innerHTML = weeklyFactorStories.map((story) => {
+    const factor = factorById[story.view.id];
+    return `<article class="weekly-factor-story">
+      <h4>${escapeHtml(story.view.title)}</h4>
+      <p><strong>Factor.</strong> ${escapeHtml(story.description)}</p>
+      <p><strong>Effect.</strong> ${escapeHtml(story.effect)}</p>
+      <div class="weekly-factor-plots ${story.showRoc ? "" : "single"}">
+        <figure class="factor-chart-card"><h5>${escapeHtml(story.view.metricLabel)}</h5>${metricBarSvg(factor, story.view)}</figure>
+        ${story.showRoc ? `<figure class="factor-chart-card"><h5>TPR–FPR · UNKNOWN excluded</h5>${rocSvg(factor)}</figure>` : ""}
       </div>
-      <div class="weekly-task-transcript">
-        <span class="weekly-mini-label">Transcript clue</span>
-        ${task.transcript.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
-      </div>
-      <div class="weekly-task-output">
-        <span class="weekly-mini-label">Expected output</span>
-        <strong>${escapeHtml(task.answer)}</strong>
-      </div>
+    </article>`;
+  }).join("");
+
+  const confidence = weekly.confidence;
+  const setup31Full = data.full_data_results.find((row) => Number(row.setup_number) === 31);
+  document.getElementById("weekly-deep-dive").innerHTML = `
+    <div class="weekly-deep-dive-plots">
+      <figure><img src="${escapeHtml(confidence.plot)}" alt="Setup 31 correct and wrong output-confidence distributions"></figure>
+      <figure><img src="${escapeHtml(setup31Full.plots.tpr_fpr)}" alt="Setup 31 TPR-FPR curve"></figure>
     </div>
-    <p class="weekly-task-note">${escapeHtml(task.explanation)}</p>
+    <p>Probabilities overlap: FPR near 90% TPR is <strong>${pct(confidence.near_90_fpr)}</strong> versus <strong>55.6%</strong> for NER.</p>
   `;
 
-  document.getElementById("weekly-timeline").innerHTML = weekly.timeline
-    .map((item) => `
-      <article class="weekly-timeline-step">
-        <span class="weekly-step-number">${escapeHtml(item.step)}</span>
-        <h4>${escapeHtml(item.title)}</h4>
-        <p>${escapeHtml(item.text)}</p>
-      </article>
-    `).join("");
-
-  const prompt = weekly.prompt_story;
-  document.getElementById("weekly-prompt-story").innerHTML = `
-    <div class="weekly-prompt-grid">
-      <div class="weekly-prompt-anatomy">
-        <h4>Prompt anatomy</h4>
-        <ol>${prompt.anatomy.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>
-        <p>${escapeHtml(prompt.finalization_note)}</p>
-      </div>
-      <details class="weekly-prompt-example">
-        <summary>Open compact prompt example</summary>
-        <pre>${escapeHtml(prompt.example)}</pre>
-      </details>
-    </div>
-    <div class="weekly-prompt-lessons">
-      ${prompt.lessons.map((lesson) => `
-        <article>
-          <strong>${escapeHtml(lesson.change)}</strong>
-          <span>${escapeHtml(lesson.result)}</span>
-          <p>Decision: ${escapeHtml(lesson.decision)}</p>
-        </article>
-      `).join("")}
-    </div>
-  `;
-
-  document.getElementById("weekly-search-waves").innerHTML = weekly.search_waves
-    .map((wave) => `
-      <article class="weekly-wave">
-        <h4>${escapeHtml(wave.title)}</h4>
-        <p class="weekly-wave-question">${escapeHtml(wave.question)}</p>
-        <div class="weekly-chip-list">
-          ${wave.items.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
-        </div>
-        <p class="weekly-wave-result">${escapeHtml(wave.result)}</p>
-      </article>
-    `).join("");
-
-  const stackedBar = (row) => `
-    <article class="weekly-behavior-row">
-      <div class="weekly-behavior-label">
-        <strong>${escapeHtml(row.label)}</strong>
-        <span>${escapeHtml(row.detail)}</span>
-      </div>
-      <div class="weekly-stacked-bar" aria-label="${escapeHtml(row.label)} behavior">
-        <span class="bar-correct" style="width:${Number(row.correct) * 100}%">${pct(row.correct)}</span>
-        <span class="bar-wrong" style="width:${Number(row.wrong) * 100}%">${pct(row.wrong)}</span>
-        <span class="bar-unknown" style="width:${Number(row.abstain) * 100}%">${pct(row.abstain)}</span>
-      </div>
-    </article>
-  `;
-  document.getElementById("weekly-behavior-bars").innerHTML = `
-    ${weekly.behavior_comparison.map(stackedBar).join("")}
-    <div class="weekly-bar-legend">
-      <span><i class="legend-correct"></i>Correct</span>
-      <span><i class="legend-wrong"></i>Wrong ID</span>
-      <span><i class="legend-unknown"></i>Abstain</span>
-    </div>
-  `;
-  document.getElementById("weekly-setup-shift").innerHTML = `
-    <h4>What changed?</h4>
-    <dl>
-      <dt>Setup 20</dt><dd>${escapeHtml(weekly.setup_shift.setup_20)}</dd>
-      <dt>Setup 31</dt><dd>${escapeHtml(weekly.setup_shift.setup_31)}</dd>
-    </dl>
-    <p>${escapeHtml(weekly.setup_shift.takeaway)}</p>
-  `;
-  document.getElementById("weekly-ner-note").textContent = weekly.ner_comparison_note;
-
-  document.getElementById("weekly-reasoning-examples").innerHTML = weekly.reasoning_examples
-    .map((example) => `
+  const reasoningDisplay = [
+    {
+      kind: "correct",
+      transcript: ["Other speaker: ‘Sunny, are you here?’", "Target speaker: ‘Yes, I’m here.’"],
+      summary: "Tracks who was addressed and who responded, then identifies Sunny.",
+      final: "Sunny · correct",
+    },
+    {
+      kind: "wrong",
+      transcript: ["Other speaker: ‘David, do you have any idea?’", "Target speaker: ‘No, I don’t know … Perin.’"],
+      summary: "Finds that David was addressed, but switches to Perin because the target mentions that name.",
+      final: "Perin · wrong (ground truth David)",
+    },
+  ];
+  document.getElementById("weekly-reasoning-examples").innerHTML = reasoningDisplay.map((example) => `
       <article class="weekly-reasoning-card ${escapeHtml(example.kind)}">
         <div class="reasoning-card-heading">
-          <span>${example.kind === "correct" ? "Correct path" : "Wrong path"}</span>
-          <h4>${escapeHtml(example.title)}</h4>
+          <span>${example.kind === "correct" ? "Correct reasoning" : "Wrong reasoning"}</span>
         </div>
         <div class="reasoning-transcript">
           ${example.transcript.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
         </div>
-        <ol>
-          ${example.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
-        </ol>
+        <p class="weekly-reasoning-summary">${escapeHtml(example.summary)}</p>
         <strong class="reasoning-final">Final: ${escapeHtml(example.final)}</strong>
-        <small>${escapeHtml(example.source_setup)} · ${escapeHtml(example.source_example_id)}</small>
       </article>
     `).join("");
-  document.getElementById("weekly-error-audit").innerHTML = `
-    <strong>${weekly.error_audit.reasoning_supported}/${weekly.error_audit.wrong_total}</strong>
-    <span>wrong Setup 31 outputs were reasoning-supported semantic errors.</span>
-    <p>${escapeHtml(weekly.error_audit.takeaway)}</p>
-  `;
-
-  const confidence = weekly.confidence;
-  document.getElementById("weekly-confidence-plot").src = confidence.plot;
-  document.getElementById("weekly-confidence-takeaway").textContent = confidence.takeaway;
-  document.getElementById("weekly-confidence").innerHTML = `
-    <div class="weekly-confidence-card">
-      <span>Attribution Setup 31</span>
-      <strong>Correct ${pct(confidence.correct_mean)} ± ${pct(confidence.correct_std)}</strong>
-      <strong>Wrong ${pct(confidence.wrong_mean)} ± ${pct(confidence.wrong_std)}</strong>
-      <small>Medians: ${pct(confidence.correct_median)} vs ${pct(confidence.wrong_median)}</small>
-    </div>
-    <div class="weekly-confidence-card">
-      <span>NER nickname</span>
-      <strong>Correct ${pct(confidence.ner_correct_mean)} ± ${pct(confidence.ner_correct_std)}</strong>
-      <strong>Wrong ${pct(confidence.ner_wrong_mean)} ± ${pct(confidence.ner_wrong_std)}</strong>
-    </div>
-    <div class="weekly-confidence-card emphasis">
-      <span>Probability-only gate · Setup 31</span>
-      <strong>AUROC ${decimal(confidence.auroc)}</strong>
-      <strong>FPR ${pct(confidence.near_90_fpr)} at ~90% TPR</strong>
-    </div>
-  `;
 
   const current = weekly.current_stage;
-  document.getElementById("weekly-current-stage").innerHTML = `
-    <p>${escapeHtml(current.text)}</p>
+  document.getElementById("weekly-counterfactual").innerHTML = `
+    <p>Each of 291 evidence examples has a minimally edited, token-aligned GT=UNKNOWN twin. The window, target, participant order, and non-evidence token positions stay fixed.</p>
     <div class="weekly-pair-example">
       <div><span>Evidence</span><strong>${escapeHtml(current.pair_example.evidence)}</strong></div>
       <div><span>No evidence</span><strong>${escapeHtml(current.pair_example.no_evidence)}</strong></div>
-      <p>${escapeHtml(current.pair_example.note)}</p>
     </div>
-    <p class="weekly-selected-setups"><strong>Current candidates:</strong> ${current.setup_numbers.map((number) => `Setup ${number}`).join(", ")}</p>
-    <ul class="weekly-pair-validation">
-      ${current.validation.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-    </ul>
+    <p><strong>Next:</strong> evaluate Setup 20 and Setup 31 on all pairs, select the useful behavioral regimes, then extract aligned activations.</p>
   `;
 
   const selectTab = (tabId) => {
     const selected = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
     if (!selected) return;
+      document.body.classList.toggle("weekly-view", tabId === "weekly-report");
       document.querySelectorAll(".tab-button").forEach((item) => item.classList.remove("active"));
       document.querySelectorAll(".tab-panel").forEach((panel) => {
         panel.hidden = panel.id !== tabId;
