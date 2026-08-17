@@ -328,23 +328,52 @@
     <p><strong>Next:</strong> evaluate Setup 20 and Setup 31 on all pairs, select the useful behavioral regimes, then extract aligned activations.</p>
   `;
 
+  const behavioralMenu = document.getElementById("behavioral-analysis-menu");
+  const behavioralMenuButton = document.getElementById("behavioral-analysis-menu-button");
+  const behavioralTabIds = new Set(["all-setups", "chosen-setups", "factor-effects"]);
+  const closeBehavioralMenu = () => {
+    behavioralMenu.hidden = true;
+    behavioralMenuButton.setAttribute("aria-expanded", "false");
+  };
+
   const selectTab = (tabId) => {
     const selected = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
     if (!selected) return;
-      document.body.classList.toggle("weekly-view", tabId === "weekly-report");
-      document.querySelectorAll(".tab-button").forEach((item) => item.classList.remove("active"));
-      document.querySelectorAll(".tab-panel").forEach((panel) => {
-        panel.hidden = panel.id !== tabId;
-        panel.classList.toggle("active", panel.id === tabId);
-      });
-      selected.classList.add("active");
+    document.body.classList.toggle("weekly-view", tabId === "weekly-report");
+    document.querySelectorAll(".tab-button").forEach((item) => item.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach((panel) => {
+      panel.hidden = panel.id !== tabId;
+      panel.classList.toggle("active", panel.id === tabId);
+    });
+    selected.classList.add("active");
+    behavioralMenuButton.classList.toggle("active", behavioralTabIds.has(tabId));
   };
+
+  behavioralMenuButton.addEventListener("click", () => {
+    const willOpen = behavioralMenu.hidden;
+    behavioralMenu.hidden = !willOpen;
+    behavioralMenuButton.setAttribute("aria-expanded", String(willOpen));
+    if (willOpen) {
+      (behavioralMenu.querySelector(".tab-button.active") || behavioralMenu.querySelector(".tab-button"))?.focus();
+    }
+  });
 
   document.querySelectorAll(".tab-button").forEach((button) => {
     button.addEventListener("click", () => {
       selectTab(button.dataset.tab);
       window.history.replaceState(null, "", `#${button.dataset.tab}`);
+      closeBehavioralMenu();
     });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".tab-menu")) closeBehavioralMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !behavioralMenu.hidden) {
+      closeBehavioralMenu();
+      behavioralMenuButton.focus();
+    }
   });
   selectTab(window.location.hash.slice(1) || "all-setups");
 })();
