@@ -375,5 +375,5 @@
       behavioralMenuButton.focus();
     }
   });
-  selectTab(window.location.hash.slice(1) || "all-setups");
+  selectTab(window.location.hash.slice(1) || "task-data");
 })();
