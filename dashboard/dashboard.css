@@ -204,7 +204,7 @@ h1 {
 .dataset-label { font-weight: 700; white-space: nowrap; }
 .real-data { color: #315f87; }
 .synthetic-data { color: var(--accent); }
-.no-evidence-outcome { min-width: 142px; text-align: center; }
+.paired-results-table td.no-evidence-outcome { min-width: 142px; text-align: center; }
 .correct-rejection { color: #176b55; font-weight: 750; }
 .false-attribution { color: #b34747; font-weight: 750; }
 .outcome-divider { margin: 0 8px; color: #a0a8b5; font-weight: 500; }
