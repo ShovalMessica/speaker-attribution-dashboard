@@ -189,10 +189,16 @@ h1 {
 .metric-fraction > span:last-child { padding: 4px 6px 0; }
 .metric-fraction sub { font-size: .8em; font-style: normal; }
 .metric-equation { display: inline-flex; gap: 10px; align-items: center; }
-.confidence-scope { margin: 0 0 16px; color: #354056; }
-.confidence-metric-definitions { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 12px 18px; margin: 0; }
-.confidence-metric-definitions dt { font-weight: 700; }
-.confidence-metric-definitions dd { margin: 0; color: #465168; }
+.confidence-gate-definition { max-width: 760px; }
+.confidence-gate-definition > p { margin: 0 0 12px; }
+.confidence-gate-definition > p:not(:first-child) { margin-top: 28px; }
+.confidence-labels { margin: 0; }
+.confidence-labels dt { margin: 0 0 7px; font-weight: 700; }
+.confidence-labels dd { position: relative; margin: 0 0 7px; padding-left: 60px; }
+.confidence-labels dd::before { content: "–"; position: absolute; left: 30px; }
+.confidence-evaluation-list li::before { content: "–"; position: absolute; left: 0; }
+.confidence-evaluation-list { margin: 0; padding: 0; list-style: none; }
+.confidence-evaluation-list li { position: relative; margin: 7px 0; padding-left: 30px; }
 .goal-target-list { margin: 0; padding-left: 22px; }
 .goal-target-list > li { margin: 0 0 16px; }
 .goal-target-list ul { margin: 7px 0 0; padding-left: 22px; }
