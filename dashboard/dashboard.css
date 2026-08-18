@@ -185,7 +185,7 @@ h1 {
 .outcome-definition-table th:nth-child(3),
 .outcome-definition-table th:nth-child(4) { width: 11%; }
 .outcome-definition-table th:nth-child(5) { width: 30%; }
-.outcome-definition-table td:last-child { color: #465168; font-size: 12px; text-align: center; }
+.outcome-definition-table td:last-child { color: #465168; font-size: 12px; text-align: left; }
 .metric-fraction { display: inline-grid; min-width: 150px; text-align: center; vertical-align: middle; line-height: 1.15; }
 .metric-fraction > span:first-child { padding: 0 6px 4px; border-bottom: 1px solid currentColor; }
 .metric-fraction > span:last-child { padding: 4px 6px 0; }
