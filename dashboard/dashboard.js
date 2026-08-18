@@ -12,7 +12,7 @@
     .replaceAll("'", "&#039;");
 
   document.getElementById("description").textContent = data.description;
-  const setupDetails = (row, pairedMetrics = null, conclusion = null, status = null) => `
+  const setupDetails = (row, conclusion = null, status = null) => `
     <details class="setup-definition">
       <summary>View setup</summary>
       <div class="setup-definition-body">
@@ -26,47 +26,45 @@
           <dt>Sampling</dt><dd>${escapeHtml(row.definition.sampling)}</dd>
           <dt>Final decision cue</dt><dd>${escapeHtml(row.definition.final_cue)}</dd>
         </dl>
-        ${pairedMetrics ? `<p class="paired-outcome"><strong>No attribution required:</strong> Correct rejection ${pct(pairedMetrics.correct_rejection_rate)} · False attribution ${pct(pairedMetrics.false_attribution_rate)}</p>` : ""}
         ${conclusion ? `<div class="setup-conclusion"><strong>${escapeHtml(status)}</strong><p>${escapeHtml(conclusion)}</p></div>` : ""}
       </div>
     </details>`;
 
-  const renderSetupTable = (view) => {
-    const isInitial = view === "initial";
-    const corpus = view === "paired-synthetic" ? "synthetic" : "real";
-    const rows = isInitial
-      ? data.setups.map((row) => ({ ...row, metrics: row, pairedMetrics: null }))
-      : data.cross_domain_results.map((row) => ({
-          ...row,
-          metrics: row[corpus],
-          pairedMetrics: row[corpus],
-          meets_screening_target: false,
-        }));
-    document.getElementById("setup-result-description").textContent = isInitial
-      ? "Attribution required (evidence), n=50 per setup."
-      : `${corpus === "real" ? "Real" : "Synthetic"} paired screening: 50 evidence and 50 no-evidence cases per setup.`;
-    document.getElementById("screening-shortlist").innerHTML = isInitial
-      ? `<strong>Top screening shortlist (${data.screening_candidates.length}):</strong> ${data.screening_candidates.map((number) => `Setup ${number}`).join(", ")}`
-      : `<strong>Completed paired setups (${rows.length}):</strong> ${rows.map((row) => `Setup ${row.setup_number}`).join(", ")}`;
-    document.querySelector("#setup-table tbody").innerHTML = rows.map((row) => `
+  document.getElementById("screening-shortlist").innerHTML =
+    `<strong>Top screening shortlist (${data.screening_candidates.length}):</strong> ` +
+    data.screening_candidates.map((number) => `Setup ${number}`).join(", ");
+  document.querySelector("#setup-table tbody").innerHTML = data.setups.map((row) => `
       <tr class="${row.meets_screening_target ? "goal-match" : ""}">
         <td><strong>Setup ${row.setup_number}</strong>${row.meets_screening_target ? '<span class="status-badge">Target match</span>' : ""}</td>
-        <td>${pct(row.metrics.accuracy)}</td>
-        <td>${pct(row.metrics.wrong_rate)}</td>
-        <td>${pct(row.metrics.unknown_rate)}</td>
-        <td>${decimal(row.metrics.auroc)}</td>
-        <td>${pct(row.metrics.near_90_fpr)}</td>
-        <td class="definition-cell">${setupDetails(row, row.pairedMetrics, isInitial ? null : row.conclusion, isInitial ? null : row.status)}</td>
+        <td>${pct(row.accuracy)}</td>
+        <td>${pct(row.wrong_rate)}</td>
+        <td>${pct(row.unknown_rate)}</td>
+        <td>${decimal(row.auroc)}</td>
+        <td>${pct(row.near_90_fpr)}</td>
+        <td class="definition-cell">${setupDetails(row)}</td>
       </tr>
     `).join("");
-  };
-  const resultSelector = document.getElementById("setup-result-view");
-  const requestedResultView = new URLSearchParams(window.location.search).get("results");
-  if (["initial", "paired-real", "paired-synthetic"].includes(requestedResultView)) {
-    resultSelector.value = requestedResultView;
-  }
-  resultSelector.addEventListener("change", () => renderSetupTable(resultSelector.value));
-  renderSetupTable(resultSelector.value);
+
+  const pairedMetricCells = (metrics) => `
+    <td>${pct(metrics.accuracy)}</td>
+    <td>${pct(metrics.wrong_rate)}</td>
+    <td>${pct(metrics.unknown_rate)}</td>
+    <td>${decimal(metrics.auroc)}</td>
+    <td>${pct(metrics.near_90_fpr)}</td>
+    <td>${pct(metrics.correct_rejection_rate)}</td>
+    <td>${pct(metrics.false_attribution_rate)}</td>`;
+  document.querySelector("#paired-setup-table tbody").innerHTML = data.cross_domain_results.map((row) => `
+    <tr class="paired-group-start">
+      <td rowspan="2"><strong>Setup ${row.setup_number}</strong></td>
+      <td><span class="dataset-label real-data">Real data</span></td>
+      ${pairedMetricCells(row.real)}
+      <td rowspan="2" class="definition-cell">${setupDetails(row, row.conclusion, row.status)}</td>
+    </tr>
+    <tr>
+      <td><span class="dataset-label synthetic-data">Synthetic data</span></td>
+      ${pairedMetricCells(row.synthetic)}
+    </tr>
+  `).join("");
 
   const factorData = data.factor_effects;
   document.getElementById("factor-method-note").textContent = factorData.method_note;
@@ -388,5 +386,8 @@
       behavioralMenuButton.focus();
     }
   });
-  selectTab(window.location.hash.slice(1) || "task-data");
+  const initialAnchor = window.location.hash.slice(1);
+  selectTab(initialAnchor === "paired-results" || initialAnchor === "evidence-results"
+    ? "all-setups"
+    : initialAnchor || "task-data");
 })();
