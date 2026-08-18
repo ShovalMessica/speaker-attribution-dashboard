@@ -260,7 +260,7 @@
 
   const weeklyGoals = [
     ["Attribution required (evidence)", "Correct-attribution rate ≥30% · Wrong-attribution rate ≥30% · Missed-attribution rate ≤40%"],
-    ["Weak probability baseline", "AUROC <0.8 · FPR ≥70–80% near 90% TPR"],
+    ["Weak probability baseline", "Gate AUROC <0.8 · Gate FPR ≥70–80% near 90% TPR"],
     ["No attribution required (no evidence)", "False-attribution rate 20–30% · Correct-rejection rate 70–80%"],
     ["Data sufficiency", "Enough counterfactual pairs and correct/wrong proposals for causal and gate analysis"],
   ];
