@@ -70,10 +70,17 @@
   `).join("");
 
   const factorData = data.factor_effects;
+  const factorResearch = factorData.analysis;
+  document.getElementById("factor-effects-summary").textContent = factorResearch.headline;
+  document.getElementById("factor-shared-conditions").innerHTML = factorResearch.shared_conditions
+    .map((condition) => `<span>${escapeHtml(condition)}</span>`).join("");
+  document.getElementById("factor-variable-map").innerHTML = factorResearch.variables
+    .map((variable) => `<article><strong>${escapeHtml(variable.label)}</strong><span>${escapeHtml(variable.values)}</span></article>`).join("");
+  document.getElementById("factor-robustness-note").textContent = factorResearch.robustness_check;
   const factorViews = [
-    { id: "final_cue", title: "Final decision cue", baselineLabel: "Conservative cue", variantLabel: "Most-likely-participant cue", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The permissive cue made the model answer more often, converting missed attributions into both correct and wrong attributions." },
-    { id: "distractor_windows", title: "Distractor-rich window", baselineLabel: "Ordinary valid window", variantLabel: "Same length, more other-name mentions", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The model answered more often. Nearly all additional decisions were correct; wrong attribution was inconsistent." },
-    { id: "participant_scope", title: "Participant-list size", baselineLabel: "Identified speakers who spoke", variantLabel: "Full meeting participant list", metric: "correct", metricLabel: "Correct-attribution rate", takeaway: "A broader choice set reduced correct attribution in both comparisons." },
+    { id: "final_cue", title: "Final decision cue", baselineLabel: "Require one unambiguous identity", variantLabel: "Choose the best-supported identity", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The model committed more often in all three comparisons. Later paired tests confirmed the cost: false attribution rose by 22 points on Real data and 24 points on Synthetic data." },
+    { id: "distractor_windows", title: "Distractor-rich window selection", baselineLabel: "Ordinary valid window", variantLabel: "Same length, more other-name mentions", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The model committed more often in all three comparisons. Most additional decisions were correct; the wrong-attribution change was inconsistent." },
+    { id: "participant_scope", title: "Candidate-set size", baselineLabel: "Only identified speakers who spoke", variantLabel: "Full supplied meeting roster", metric: "correct", metricLabel: "Correct-attribution rate", takeaway: "More candidate identities reduced correct attribution in both comparisons. The synthetic corpus cannot test this factor because its supplied and speaking rosters are identical." },
     { id: "candidate_placement", title: "Participant-list position", baselineLabel: "List before transcript", variantLabel: "List after transcript", metric: "wrong", metricLabel: "Wrong-attribution rate", takeaway: "Moving the same list after the transcript increased wrong attribution in both comparisons." },
     { id: "reasoning_budget", title: "Reasoning budget", baselineLabel: "Lower token allowance", variantLabel: "Higher token allowance", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The effect was weak: one comparison changed and one was effectively unchanged." },
     { id: "sampling_policy", title: "Sampling entropy and seed", baselineLabel: "Original sampling", variantLabel: "Entropy or seed changed", metric: "near_90_fpr", metricLabel: "FPR near 90% TPR", takeaway: "Behavioral accuracy barely moved, but probability separation changed substantially." },
@@ -174,6 +181,42 @@
       </div>
     </section>`;
   }).join("");
+
+  const traceSummary = factorData.trace_summary;
+  const correctTotal = Number(traceSummary.outcomes.correct);
+  const correctSupported = Number(traceSummary.correct_trace_supported);
+  const wrongTotal = Number(traceSummary.outcomes.wrong);
+  const wrongBars = traceSummary.wrong_patterns.map((pattern) => {
+    const share = Number(pattern.count) / wrongTotal;
+    return `<div class="factor-pattern-row">
+      <div><span>${escapeHtml(pattern.label)}</span><strong>${pattern.count} · ${pct(share)}</strong></div>
+      <div class="factor-pattern-track"><i style="width:${(100 * share).toFixed(1)}%"></i></div>
+    </div>`;
+  }).join("");
+  const boundaryRows = traceSummary.no_evidence_boundary.map((row) => {
+    const setupLabel = `Setup ${String(row.setup_id).split("_")[1]}`;
+    return `<div class="factor-boundary-row"><strong>${escapeHtml(setupLabel)}</strong><span>${row.forced_boundary}/${row.false_attributions} false attributions followed forced finalization</span></div>`;
+  }).join("");
+  document.getElementById("factor-trace-summary").innerHTML = `
+    <article>
+      <span class="factor-trace-label">When correct</span>
+      <strong class="factor-trace-number">${correctSupported}/${correctTotal}</strong>
+      <p>Correct outputs were supported by a valid identity clue in the reasoning trace.</p>
+      <small>Typical chain: named address → target response → candidate mapping.</small>
+    </article>
+    <article class="factor-wrong-patterns">
+      <span class="factor-trace-label">When wrong · ${wrongTotal} outcomes</span>
+      ${wrongBars}
+    </article>
+    <article>
+      <span class="factor-trace-label">When evidence is absent</span>
+      ${boundaryRows}
+      <p>The output is still wrong end-to-end, but usually not a naturally completed semantic conclusion.</p>
+    </article>`;
+  document.getElementById("factor-trace-note").textContent = traceSummary.independence_note;
+  document.getElementById("factor-research-lessons").innerHTML = factorResearch.lessons
+    .map((lesson) => `<article><strong>${escapeHtml(lesson.title)}</strong><p>${escapeHtml(lesson.text)}</p></article>`).join("");
+  document.getElementById("factor-limitations").textContent = factorResearch.limitations;
 
   const chosenRows = data.full_data_results.map((setup) => ({
     metrics: setup.full,
