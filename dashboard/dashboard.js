@@ -65,34 +65,6 @@
     </tr>
   `).join("");
 
-  const domainBlock = (label, metrics) => `
-    <section class="domain-block">
-      <h4>${label}</h4>
-      <dl>
-        <dt>Attribution required (evidence)</dt>
-        <dd class="outcome-label">Correct attribution / Wrong attribution / Missed attribution</dd>
-        <dd>${pct(metrics.accuracy)} / ${pct(metrics.wrong_rate)} / ${pct(metrics.unknown_rate)}</dd>
-        <dt>FPR @ ~90% TPR</dt>
-        <dd>${pct(metrics.near_90_fpr)}</dd>
-        <dt>No attribution required (no evidence)</dt>
-        <dd class="outcome-label">Correct rejection / False attribution</dd>
-        <dd>${pct(metrics.correct_rejection_rate)} / ${pct(metrics.false_attribution_rate)}</dd>
-      </dl>
-    </section>`;
-  document.getElementById("cross-domain-results").innerHTML = data.cross_domain_results.map((row) => `
-    <article class="cross-domain-card ${row.status === "Selected anchor" ? "selected" : ""}">
-      <header>
-        <div><h3>Setup ${row.setup_number}</h3><p>${escapeHtml(row.definition.main_change)}</p></div>
-        <span>${escapeHtml(row.status)}</span>
-      </header>
-      <div class="domain-columns">
-        ${domainBlock("Real", row.real)}
-        ${domainBlock("Synthetic", row.synthetic)}
-      </div>
-      <p class="cross-domain-conclusion">${escapeHtml(row.conclusion)}</p>
-    </article>
-  `).join("");
-
   const factorData = data.factor_effects;
   document.getElementById("factor-method-note").textContent = factorData.method_note;
   const factorViews = [
@@ -368,7 +340,7 @@
 
   const behavioralMenu = document.getElementById("behavioral-analysis-menu");
   const behavioralMenuButton = document.getElementById("behavioral-analysis-menu-button");
-  const behavioralTabIds = new Set(["goal-definition", "all-setups", "cross-domain", "chosen-setups", "factor-effects"]);
+  const behavioralTabIds = new Set(["goal-definition", "all-setups", "chosen-setups", "factor-effects"]);
   const closeBehavioralMenu = () => {
     behavioralMenu.hidden = true;
     behavioralMenuButton.setAttribute("aria-expanded", "false");
