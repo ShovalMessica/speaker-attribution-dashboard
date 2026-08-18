@@ -38,20 +38,49 @@
               <dt>Sampling</dt><dd>${escapeHtml(row.definition.sampling)}</dd>
               <dt>Final decision cue</dt><dd>${escapeHtml(row.definition.final_cue)}</dd>
             </dl>
+            ${row.cross_domain ? `<div class="setup-conclusion"><strong>${escapeHtml(row.cross_domain.status)}</strong><p>${escapeHtml(row.cross_domain.conclusion)}</p></div>` : ""}
           </div>
         </details>
       </td>
     </tr>
   `).join("");
 
+  const domainBlock = (label, metrics) => `
+    <section class="domain-block">
+      <h4>${label}</h4>
+      <dl>
+        <dt>Attribution required (evidence)</dt>
+        <dd class="outcome-label">Correct attribution / Wrong attribution / Missed attribution</dd>
+        <dd>${pct(metrics.accuracy)} / ${pct(metrics.wrong_rate)} / ${pct(metrics.unknown_rate)}</dd>
+        <dt>FPR @ ~90% TPR</dt>
+        <dd>${pct(metrics.near_90_fpr)}</dd>
+        <dt>No attribution required (no evidence)</dt>
+        <dd class="outcome-label">Correct rejection / False attribution</dd>
+        <dd>${pct(metrics.correct_rejection_rate)} / ${pct(metrics.false_attribution_rate)}</dd>
+      </dl>
+    </section>`;
+  document.getElementById("cross-domain-results").innerHTML = data.cross_domain_results.map((row) => `
+    <article class="cross-domain-card ${row.status === "Selected anchor" ? "selected" : ""}">
+      <header>
+        <div><h3>Setup ${row.setup_number}</h3><p>${escapeHtml(row.definition.main_change)}</p></div>
+        <span>${escapeHtml(row.status)}</span>
+      </header>
+      <div class="domain-columns">
+        ${domainBlock("Real", row.real)}
+        ${domainBlock("Synthetic", row.synthetic)}
+      </div>
+      <p class="cross-domain-conclusion">${escapeHtml(row.conclusion)}</p>
+    </article>
+  `).join("");
+
   const factorData = data.factor_effects;
   document.getElementById("factor-method-note").textContent = factorData.method_note;
   const factorViews = [
-    { id: "distractor_windows", title: "Distractor-rich windows across chunk sizes", baselineLabel: "Ordinary valid window", variantLabel: "Same-length distractor-rich window", metric: "unknown", metricLabel: "UNKNOWN rate", takeaway: "The model answered more often. Nearly all additional decisions were correct; wrong-ID was inconsistent." },
-    { id: "participant_scope", title: "Participant-list size", baselineLabel: "Identified speakers who spoke", variantLabel: "Full meeting participant list", metric: "correct", metricLabel: "Accuracy", takeaway: "A broader choice set reduced accuracy in both comparisons." },
-    { id: "candidate_placement", title: "Participant-list position", baselineLabel: "List before transcript", variantLabel: "List after transcript", metric: "wrong", metricLabel: "Wrong-ID rate", takeaway: "Moving the same list after the transcript increased wrong-ID in both comparisons." },
-    { id: "final_cue", title: "Prompt decision rule", baselineLabel: "Conservative review cue", variantLabel: "Most-likely-participant cue", metric: "unknown", metricLabel: "UNKNOWN rate", takeaway: "The permissive cue converted abstentions into both correct and wrong participant answers." },
-    { id: "reasoning_budget", title: "Reasoning budget", baselineLabel: "Lower token allowance", variantLabel: "Higher token allowance", metric: "unknown", metricLabel: "UNKNOWN rate", takeaway: "The effect was weak: one comparison changed and one was effectively unchanged." },
+    { id: "distractor_windows", title: "Distractor-rich windows across chunk sizes", baselineLabel: "Ordinary valid window", variantLabel: "Same-length distractor-rich window", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The model answered more often. Nearly all additional decisions were correct; wrong attribution was inconsistent." },
+    { id: "participant_scope", title: "Participant-list size", baselineLabel: "Identified speakers who spoke", variantLabel: "Full meeting participant list", metric: "correct", metricLabel: "Correct-attribution rate", takeaway: "A broader choice set reduced correct attribution in both comparisons." },
+    { id: "candidate_placement", title: "Participant-list position", baselineLabel: "List before transcript", variantLabel: "List after transcript", metric: "wrong", metricLabel: "Wrong-attribution rate", takeaway: "Moving the same list after the transcript increased wrong attribution in both comparisons." },
+    { id: "final_cue", title: "Prompt decision rule", baselineLabel: "Conservative review cue", variantLabel: "Most-likely-participant cue", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The permissive cue converted missed attributions into both correct and wrong attributions." },
+    { id: "reasoning_budget", title: "Reasoning budget", baselineLabel: "Lower token allowance", variantLabel: "Higher token allowance", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The effect was weak: one comparison changed and one was effectively unchanged." },
     { id: "sampling_policy", title: "Sampling entropy and seed", baselineLabel: "Original sampling", variantLabel: "Entropy or seed changed", metric: "near_90_fpr", metricLabel: "FPR near 90% TPR", takeaway: "Behavioral accuracy barely moved, but probability separation changed substantially." },
   ];
   const strongFactorIds = new Set(["distractor_windows", "participant_scope", "candidate_placement", "final_cue"]);
@@ -228,9 +257,9 @@
   `;
 
   const weeklyGoals = [
-    ["Behavioral regime", "Accuracy ≥30% · Wrong-ID ≥30% · UNKNOWN ≤40%"],
+    ["Attribution required (evidence)", "Correct-attribution rate ≥30% · Wrong-attribution rate ≥30% · Missed-attribution rate ≤40%"],
     ["Weak probability baseline", "AUROC <0.8 · FPR ≥70–80% near 90% TPR"],
-    ["No-evidence regime", "20–30% false attribution · 70–80% correct rejection"],
+    ["No attribution required (no evidence)", "False-attribution rate 20–30% · Correct-rejection rate 70–80%"],
     ["Data sufficiency", "Enough counterfactual pairs and correct/wrong proposals for causal and gate analysis"],
   ];
   document.getElementById("weekly-goals").innerHTML = `<ul>${weeklyGoals.map(([title, text]) => `
@@ -241,13 +270,13 @@
     {
       view: factorViews.find((view) => view.id === "distractor_windows"),
       description: "At each tested chunk size, replace an ordinary valid window with a same-length window containing more natural mentions of other participants.",
-      effect: "The model made more decisions: UNKNOWN fell 63.3% → 44.0%, with nearly all additional decisions correct. Confidence separation improved in 3/3 pairs (AUROC 0.425 → 0.740).",
+      effect: "The model made more decisions: missed attribution fell 63.3% → 44.0%, with nearly all additional decisions correct. Confidence separation improved in 3/3 pairs (AUROC 0.425 → 0.740).",
       showRoc: true,
     },
     {
       view: factorViews.find((view) => view.id === "participant_scope"),
       description: "Candidates are either only identified participants who spoke, or everyone listed for the meeting.",
-      effect: "The full meeting list made attribution harder: accuracy fell 45.0% → 26.0% in 2/2 matched comparisons.",
+      effect: "The full meeting list made attribution harder: correct attribution fell 45.0% → 26.0% in 2/2 matched comparisons.",
       showRoc: false,
     },
     {
@@ -314,12 +343,12 @@
       <div><span>Evidence</span><strong>${escapeHtml(current.pair_example.evidence)}</strong></div>
       <div><span>No evidence</span><strong>${escapeHtml(current.pair_example.no_evidence)}</strong></div>
     </div>
-    <p><strong>Next:</strong> evaluate Setup 20 and Setup 31 on all pairs, select the useful behavioral regimes, then extract aligned activations.</p>
+    <p><strong>Next:</strong> finish Setup 20 on the full synthetic dataset, freeze the modeling splits, then begin gate and circuit work.</p>
   `;
 
   const behavioralMenu = document.getElementById("behavioral-analysis-menu");
   const behavioralMenuButton = document.getElementById("behavioral-analysis-menu-button");
-  const behavioralTabIds = new Set(["all-setups", "chosen-setups", "factor-effects"]);
+  const behavioralTabIds = new Set(["all-setups", "cross-domain", "chosen-setups", "factor-effects"]);
   const closeBehavioralMenu = () => {
     behavioralMenu.hidden = true;
     behavioralMenuButton.setAttribute("aria-expanded", "false");
