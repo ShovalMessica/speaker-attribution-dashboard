@@ -348,7 +348,7 @@
 
   const behavioralMenu = document.getElementById("behavioral-analysis-menu");
   const behavioralMenuButton = document.getElementById("behavioral-analysis-menu-button");
-  const behavioralTabIds = new Set(["all-setups", "cross-domain", "chosen-setups", "factor-effects"]);
+  const behavioralTabIds = new Set(["goal-definition", "all-setups", "cross-domain", "chosen-setups", "factor-effects"]);
   const closeBehavioralMenu = () => {
     behavioralMenu.hidden = true;
     behavioralMenuButton.setAttribute("aria-expanded", "false");
