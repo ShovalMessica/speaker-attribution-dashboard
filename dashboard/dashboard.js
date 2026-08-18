@@ -12,19 +12,20 @@
     .replaceAll("'", "&#039;");
 
   document.getElementById("description").textContent = data.description;
-  const setupDetails = (row, conclusion = null, status = null) => `
+  const setupDetails = (row, conclusion = null, status = null, paired = false) => `
     <details class="setup-definition">
       <summary>View setup</summary>
       <div class="setup-definition-body">
         <p><strong>Main change:</strong> ${escapeHtml(row.definition.main_change)}</p>
         <dl>
-          <dt>Screening panel</dt><dd>${escapeHtml(row.definition.screening_panel)}</dd>
+          ${paired ? row.definition.factor_profile.map((factor) => `
+            <dt>${escapeHtml(factor.label)}</dt><dd>${escapeHtml(factor.value)}</dd>`).join("") : `<dt>Screening panel</dt><dd>${escapeHtml(row.definition.screening_panel)}</dd>
           <dt>Context</dt><dd>${escapeHtml(row.definition.context)}</dd>
           <dt>Participants</dt><dd>${escapeHtml(row.definition.participants)}</dd>
           <dt>Prompt</dt><dd>${escapeHtml(row.definition.prompt_template)} <span class="file-name">(${escapeHtml(row.definition.prompt_file)})</span></dd>
           <dt>Reasoning budget</dt><dd>${escapeHtml(row.definition.reasoning_tokens)} tokens</dd>
           <dt>Sampling</dt><dd>${escapeHtml(row.definition.sampling)}</dd>
-          <dt>Final decision cue</dt><dd>${escapeHtml(row.definition.final_cue)}</dd>
+          <dt>Final decision cue</dt><dd>${escapeHtml(row.definition.final_cue)}</dd>`}
         </dl>
         ${conclusion ? `<div class="setup-conclusion"><strong>${escapeHtml(status)}</strong><p>${escapeHtml(conclusion)}</p></div>` : ""}
       </div>
@@ -52,12 +53,15 @@
     <td>${decimal(metrics.auroc)}</td>
     <td>${pct(metrics.near_90_fpr)}</td>
     <td class="no-evidence-outcome"><span class="correct-rejection">${pct(metrics.correct_rejection_rate)}</span><span class="outcome-divider">/</span><span class="false-attribution">${pct(metrics.false_attribution_rate)}</span></td>`;
+  document.getElementById("paired-shared-settings").innerHTML = `
+    <strong>Shared settings</strong>
+    ${data.paired_shared_settings.map((setting) => `<span><b>${escapeHtml(setting.label)}:</b> ${escapeHtml(setting.value)}</span>`).join("")}`;
   document.querySelector("#paired-setup-table tbody").innerHTML = data.cross_domain_results.map((row) => `
     <tr class="paired-group-start">
       <td rowspan="2"><strong>Setup ${row.setup_number}</strong></td>
       <td><span class="dataset-label real-data">Real data</span></td>
       ${pairedMetricCells(row.real)}
-      <td rowspan="2" class="definition-cell">${setupDetails(row, row.conclusion, row.status)}</td>
+      <td rowspan="2" class="definition-cell">${setupDetails(row, row.conclusion, row.status, true)}</td>
     </tr>
     <tr>
       <td><span class="dataset-label synthetic-data">Synthetic data</span></td>
@@ -66,24 +70,16 @@
   `).join("");
 
   const factorData = data.factor_effects;
-  document.getElementById("factor-method-note").textContent = factorData.method_note;
   const factorViews = [
-    { id: "distractor_windows", title: "Distractor-rich windows across chunk sizes", baselineLabel: "Ordinary valid window", variantLabel: "Same-length distractor-rich window", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The model answered more often. Nearly all additional decisions were correct; wrong attribution was inconsistent." },
+    { id: "final_cue", title: "Final decision cue", baselineLabel: "Conservative cue", variantLabel: "Most-likely-participant cue", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The permissive cue made the model answer more often, converting missed attributions into both correct and wrong attributions." },
+    { id: "distractor_windows", title: "Distractor-rich window", baselineLabel: "Ordinary valid window", variantLabel: "Same length, more other-name mentions", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The model answered more often. Nearly all additional decisions were correct; wrong attribution was inconsistent." },
     { id: "participant_scope", title: "Participant-list size", baselineLabel: "Identified speakers who spoke", variantLabel: "Full meeting participant list", metric: "correct", metricLabel: "Correct-attribution rate", takeaway: "A broader choice set reduced correct attribution in both comparisons." },
     { id: "candidate_placement", title: "Participant-list position", baselineLabel: "List before transcript", variantLabel: "List after transcript", metric: "wrong", metricLabel: "Wrong-attribution rate", takeaway: "Moving the same list after the transcript increased wrong attribution in both comparisons." },
-    { id: "final_cue", title: "Prompt decision rule", baselineLabel: "Conservative review cue", variantLabel: "Most-likely-participant cue", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The permissive cue converted missed attributions into both correct and wrong attributions." },
     { id: "reasoning_budget", title: "Reasoning budget", baselineLabel: "Lower token allowance", variantLabel: "Higher token allowance", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The effect was weak: one comparison changed and one was effectively unchanged." },
     { id: "sampling_policy", title: "Sampling entropy and seed", baselineLabel: "Original sampling", variantLabel: "Entropy or seed changed", metric: "near_90_fpr", metricLabel: "FPR near 90% TPR", takeaway: "Behavioral accuracy barely moved, but probability separation changed substantially." },
   ];
-  const strongFactorIds = new Set(["distractor_windows", "participant_scope", "candidate_placement", "final_cue"]);
-  const strongFactorsOnly = new URLSearchParams(window.location.search).get("factors") === "strong";
-  const visibleFactorViews = strongFactorsOnly
-    ? factorViews.filter((view) => strongFactorIds.has(view.id))
-    : factorViews;
-  if (strongFactorsOnly) {
-    document.getElementById("factor-effects-heading").textContent = "Most consistent factor effects";
-    document.getElementById("factor-effects-summary").textContent = "Four factors with repeated same-direction behavioral shifts.";
-  }
+  const visibleFactorIds = new Set(["final_cue", "distractor_windows", "participant_scope"]);
+  const visibleFactorViews = factorViews.filter((view) => visibleFactorIds.has(view.id));
   const factorById = Object.fromEntries(factorData.factors.map((factor) => [factor.id, factor]));
   const pairColors = ["#176b55", "#315f87", "#b05d5b"];
   const signedPp = (value) => `${Number(value) > 0 ? "+" : ""}${Number(value).toFixed(1)} pp`;
@@ -96,12 +92,6 @@
   const averageFactorMetric = (factor, arm, metric) => factor.comparisons.reduce(
     (sum, comparison) => sum + factorMetricValue(comparison, arm, metric), 0
   ) / factor.comparisons.length;
-  const hasConsistentRocDirection = (factor) => {
-    const directions = factor.comparisons.map((comparison) => Math.sign(
-      comparison.probability.variant.auroc - comparison.probability.baseline.auroc
-    ));
-    return directions.every((direction) => direction === directions[0]);
-  };
   const metricBarSvg = (factor, view) => {
     const groups = factor.comparisons.map((comparison) => ({
       label: `S${comparison.baseline_setup}→${comparison.variant_setup}`,
@@ -127,8 +117,10 @@
         const center = plot.left + groupWidth * (index + .5);
         const baselineHeight = plot.bottom - y(group.baseline);
         const variantHeight = plot.bottom - y(group.variant);
-        return `<rect class="factor-metric-bar baseline ${group.average ? "average" : ""}" x="${center - barWidth - 2}" y="${y(group.baseline)}" width="${barWidth}" height="${baselineHeight}"><title>Baseline: ${pct(group.baseline)}</title></rect>
-          <rect class="factor-metric-bar variant ${group.average ? "average" : ""}" x="${center + 2}" y="${y(group.variant)}" width="${barWidth}" height="${variantHeight}"><title>Changed: ${pct(group.variant)}</title></rect>
+        return `<rect class="factor-metric-bar baseline ${group.average ? "average" : ""}" x="${center - barWidth - 2}" y="${y(group.baseline)}" width="${barWidth}" height="${baselineHeight}"><title>Before: ${pct(group.baseline)}</title></rect>
+          <rect class="factor-metric-bar variant ${group.average ? "average" : ""}" x="${center + 2}" y="${y(group.variant)}" width="${barWidth}" height="${variantHeight}"><title>After: ${pct(group.variant)}</title></rect>
+          <text class="factor-metric-value" x="${center - barWidth / 2 - 2}" y="${Math.max(12, y(group.baseline) - 5)}" text-anchor="middle">${Math.round(100 * group.baseline)}%</text>
+          <text class="factor-metric-value" x="${center + barWidth / 2 + 2}" y="${Math.max(12, y(group.variant) - 5)}" text-anchor="middle">${Math.round(100 * group.variant)}%</text>
           <text class="factor-metric-group" x="${center}" y="235" text-anchor="middle">${group.label}</text>`;
       }).join("")}
       <text class="factor-metric-axis" transform="translate(10 118) rotate(-90)" text-anchor="middle">${escapeHtml(view.metricLabel)}</text>
@@ -173,15 +165,13 @@
     const consistent = factor.comparisons.filter((comparison) => Math.sign(
       factorMetricValue(comparison, "variant", view.metric) - factorMetricValue(comparison, "baseline", view.metric)
     ) === direction).length;
-    const showRoc = !strongFactorsOnly || hasConsistentRocDirection(factor);
     return `<section class="factor-analysis-panel">
       <header><h3>${escapeHtml(view.title)}</h3><span>${factor.comparisons.length} matched pairs</span></header>
       <div class="factor-change-direction"><span>${escapeHtml(view.baselineLabel)}</span><b aria-hidden="true">→</b><span>${escapeHtml(view.variantLabel)}</span></div>
-      <div class="factor-analysis-grid ${showRoc ? "" : "single"}">
-        <figure class="factor-chart-card"><h4><span>${escapeHtml(view.metricLabel)} · all 50 examples</span><span class="factor-bar-legend"><i class="without"></i>Baseline <i class="with"></i>Changed</span></h4>${metricBarSvg(factor, view)}<figcaption><strong>${pct(baselineMean)} → ${pct(variantMean)} (${signedPp(delta)})</strong><span>${consistent}/${factor.comparisons.length} pairs moved in the same direction</span></figcaption></figure>
-        ${showRoc ? `<figure class="factor-chart-card"><h4>TPR–FPR · lower curve is better · UNKNOWN excluded</h4>${rocSvg(factor)}</figure>` : ""}
-      </div>
       <p class="factor-takeaway">${escapeHtml(view.takeaway)}</p>
+      <div class="factor-analysis-grid single">
+        <figure class="factor-chart-card"><h4><span>${escapeHtml(view.metricLabel)}</span><span class="factor-bar-legend"><i class="without"></i>Before <i class="with"></i>After</span></h4>${metricBarSvg(factor, view)}<figcaption><strong>${pct(baselineMean)} → ${pct(variantMean)} (${signedPp(delta)})</strong><span>${consistent}/${factor.comparisons.length} comparisons moved in the same direction</span></figcaption></figure>
+      </div>
     </section>`;
   }).join("");
 
@@ -340,7 +330,7 @@
 
   const behavioralMenu = document.getElementById("behavioral-analysis-menu");
   const behavioralMenuButton = document.getElementById("behavioral-analysis-menu-button");
-  const behavioralTabIds = new Set(["goal-definition", "all-setups", "chosen-setups", "factor-effects"]);
+  const behavioralTabIds = new Set(["evaluation-framework", "all-setups", "chosen-setups", "factor-effects"]);
   const closeBehavioralMenu = () => {
     behavioralMenu.hidden = true;
     behavioralMenuButton.setAttribute("aria-expanded", "false");
