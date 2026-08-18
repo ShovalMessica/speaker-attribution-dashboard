@@ -16,35 +16,6 @@
     `<strong>Top screening shortlist (${data.screening_candidates.length}):</strong> ` +
     data.screening_candidates.map((number) => `Setup ${number}`).join(", ");
 
-  document.querySelector("#setup-table tbody").innerHTML = data.setups.map((row) => `
-    <tr class="${row.meets_screening_target ? "goal-match" : ""}">
-      <td><strong>Setup ${row.setup_number}</strong>${row.meets_screening_target ? '<span class="status-badge">Target match</span>' : ""}</td>
-      <td>${pct(row.accuracy)}</td>
-      <td>${pct(row.wrong_rate)}</td>
-      <td>${pct(row.unknown_rate)}</td>
-      <td>${decimal(row.auroc)}</td>
-      <td>${pct(row.near_90_fpr)}</td>
-      <td class="definition-cell">
-        <details class="setup-definition">
-          <summary>View setup</summary>
-          <div class="setup-definition-body">
-            <p><strong>Main change:</strong> ${escapeHtml(row.definition.main_change)}</p>
-            <dl>
-              <dt>Screening panel</dt><dd>${escapeHtml(row.definition.screening_panel)}</dd>
-              <dt>Context</dt><dd>${escapeHtml(row.definition.context)}</dd>
-              <dt>Participants</dt><dd>${escapeHtml(row.definition.participants)}</dd>
-              <dt>Prompt</dt><dd>${escapeHtml(row.definition.prompt_template)} <span class="file-name">(${escapeHtml(row.definition.prompt_file)})</span></dd>
-              <dt>Reasoning budget</dt><dd>${escapeHtml(row.definition.reasoning_tokens)} tokens</dd>
-              <dt>Sampling</dt><dd>${escapeHtml(row.definition.sampling)}</dd>
-              <dt>Final decision cue</dt><dd>${escapeHtml(row.definition.final_cue)}</dd>
-            </dl>
-            ${row.cross_domain ? `<div class="setup-conclusion"><strong>${escapeHtml(row.cross_domain.status)}</strong><p>${escapeHtml(row.cross_domain.conclusion)}</p></div>` : ""}
-          </div>
-        </details>
-      </td>
-    </tr>
-  `).join("");
-
   const domainBlock = (label, metrics) => `
     <section class="domain-block">
       <h4>${label}</h4>
@@ -59,18 +30,34 @@
         <dd>${pct(metrics.correct_rejection_rate)} / ${pct(metrics.false_attribution_rate)}</dd>
       </dl>
     </section>`;
-  document.getElementById("cross-domain-results").innerHTML = data.cross_domain_results.map((row) => `
-    <article class="cross-domain-card ${row.status === "Selected anchor" ? "selected" : ""}">
-      <header>
-        <div><h3>Setup ${row.setup_number}</h3><p>${escapeHtml(row.definition.main_change)}</p></div>
-        <span>${escapeHtml(row.status)}</span>
-      </header>
-      <div class="domain-columns">
-        ${domainBlock("Real", row.real)}
-        ${domainBlock("Synthetic", row.synthetic)}
-      </div>
-      <p class="cross-domain-conclusion">${escapeHtml(row.conclusion)}</p>
-    </article>
+  document.querySelector("#setup-table tbody").innerHTML = data.setup_catalog.map((row) => `
+    <tr class="${row.screening?.meets_screening_target ? "goal-match" : ""}">
+      <td><strong>Setup ${row.setup_number}</strong>${row.screening?.meets_screening_target ? '<span class="status-badge">Target match</span>' : ""}</td>
+      <td class="catalog-result-cell">${row.screening ? `
+        <small>Correct / Wrong / Missed</small>
+        <strong>${pct(row.screening.accuracy)} / ${pct(row.screening.wrong_rate)} / ${pct(row.screening.unknown_rate)}</strong>
+        <small>FPR @ ~90% TPR: ${pct(row.screening.near_90_fpr)}</small>` : '<span class="not-evaluated">Not in initial screen</span>'}</td>
+      <td class="catalog-paired-cell">${row.cross_domain ? `<strong>${escapeHtml(row.cross_domain.status)}</strong><small>Real + synthetic paired screen complete</small>` : '<span class="not-evaluated">Not evaluated on paired panels</span>'}</td>
+      <td class="definition-cell">
+        <details class="setup-definition">
+          <summary>View setup</summary>
+          <div class="setup-definition-body">
+            <p><strong>Main change:</strong> ${escapeHtml(row.definition.main_change)}</p>
+            <dl>
+              <dt>Screening panel</dt><dd>${escapeHtml(row.definition.screening_panel)}</dd>
+              <dt>Context</dt><dd>${escapeHtml(row.definition.context)}</dd>
+              <dt>Participants</dt><dd>${escapeHtml(row.definition.participants)}</dd>
+              <dt>Prompt</dt><dd>${escapeHtml(row.definition.prompt_template)} <span class="file-name">(${escapeHtml(row.definition.prompt_file)})</span></dd>
+              <dt>Reasoning budget</dt><dd>${escapeHtml(row.definition.reasoning_tokens)} tokens</dd>
+              <dt>Sampling</dt><dd>${escapeHtml(row.definition.sampling)}</dd>
+              <dt>Final decision cue</dt><dd>${escapeHtml(row.definition.final_cue)}</dd>
+            </dl>
+            ${row.full_paired_results.length ? `<section class="paired-setup-results"><h4>Full paired evaluations</h4><div class="domain-columns">${row.full_paired_results.map((result) => domainBlock(`${escapeHtml(result.label)} · ${result.metrics.evidence_examples} + ${result.metrics.no_evidence_examples}`, result.metrics)).join("")}</div></section>` : ""}
+            ${row.cross_domain ? `<section class="paired-setup-results"><h4>Paired screening · 50 evidence + 50 no-evidence cases per corpus</h4><div class="domain-columns">${domainBlock("Real", row.cross_domain.real)}${domainBlock("Synthetic", row.cross_domain.synthetic)}</div><div class="setup-conclusion"><strong>${escapeHtml(row.cross_domain.status)}</strong><p>${escapeHtml(row.cross_domain.conclusion)}</p></div></section>` : ""}
+          </div>
+        </details>
+      </td>
+    </tr>
   `).join("");
 
   const factorData = data.factor_effects;
@@ -348,7 +335,7 @@
 
   const behavioralMenu = document.getElementById("behavioral-analysis-menu");
   const behavioralMenuButton = document.getElementById("behavioral-analysis-menu-button");
-  const behavioralTabIds = new Set(["goal-definition", "all-setups", "cross-domain", "chosen-setups", "factor-effects"]);
+  const behavioralTabIds = new Set(["all-setups", "chosen-setups", "factor-effects"]);
   const closeBehavioralMenu = () => {
     behavioralMenu.hidden = true;
     behavioralMenuButton.setAttribute("aria-expanded", "false");
