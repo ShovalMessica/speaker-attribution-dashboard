@@ -185,8 +185,9 @@ h1 {
 .section-jump:hover { text-decoration: underline; }
 .paired-results-table { min-width: 1050px; }
 .paired-results-table th,
-.paired-results-table td { padding: 9px 8px; font-size: 11px; }
-.paired-results-table th { line-height: 1.25; white-space: normal; }
+.paired-results-table td { padding: 11px 9px; }
+.paired-results-table td { font-size: 13px; font-weight: 500; }
+.paired-results-table th { font-size: 12px; line-height: 1.25; white-space: normal; }
 .metric-group-heading th { text-align: center; }
 .paired-group-start td { border-top: 2px solid #c8d0db; }
 .paired-results-table td[rowspan] { vertical-align: middle; }
