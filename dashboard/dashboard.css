@@ -178,13 +178,11 @@ h1 {
 .evaluation-framework { width: 100%; }
 .evaluation-framework-section { padding: 22px 0; border-top: 1px solid var(--line); }
 .evaluation-framework-section h3 { margin: 0 0 12px; font-size: 18px; }
+.evaluation-table-wrap { width: fit-content; max-width: 100%; }
 .outcome-definition-table td[rowspan] { vertical-align: middle; }
-.outcome-definition-table { min-width: 900px; table-layout: fixed; }
-.outcome-definition-table th:nth-child(1) { width: 28%; }
-.outcome-definition-table th:nth-child(2) { width: 20%; }
-.outcome-definition-table th:nth-child(3),
-.outcome-definition-table th:nth-child(4) { width: 11%; }
-.outcome-definition-table th:nth-child(5) { width: 30%; }
+.outcome-definition-table { width: max-content; min-width: 0; table-layout: auto; }
+.outcome-definition-table th,
+.outcome-definition-table td { white-space: nowrap; }
 .outcome-definition-table td:last-child { color: #465168; font-size: 12px; text-align: left; }
 .metric-fraction { display: inline-grid; min-width: 150px; text-align: center; vertical-align: middle; line-height: 1.15; }
 .metric-fraction > span:first-child { padding: 0 6px 4px; border-bottom: 1px solid currentColor; }
