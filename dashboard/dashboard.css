@@ -193,7 +193,7 @@ h1 {
 .results-table-section + .results-table-section { margin-top: 30px; }
 .section-jump { color: var(--accent); font-size: 11px; font-weight: 700; text-decoration: none; }
 .section-jump:hover { text-decoration: underline; }
-.paired-results-table { min-width: 1050px; }
+.paired-results-table { min-width: 980px; }
 .paired-results-table th,
 .paired-results-table td { padding: 11px 9px; }
 .paired-results-table td { font-size: 13px; font-weight: 500; }
@@ -204,6 +204,10 @@ h1 {
 .dataset-label { font-weight: 700; white-space: nowrap; }
 .real-data { color: #315f87; }
 .synthetic-data { color: var(--accent); }
+.no-evidence-outcome { min-width: 142px; text-align: center; }
+.correct-rejection { color: #176b55; font-weight: 750; }
+.false-attribution { color: #b34747; font-weight: 750; }
+.outcome-divider { margin: 0 8px; color: #a0a8b5; font-weight: 500; }
 
 .cross-domain-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .cross-domain-card { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }

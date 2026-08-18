@@ -51,8 +51,7 @@
     <td>${pct(metrics.unknown_rate)}</td>
     <td>${decimal(metrics.auroc)}</td>
     <td>${pct(metrics.near_90_fpr)}</td>
-    <td>${pct(metrics.correct_rejection_rate)}</td>
-    <td>${pct(metrics.false_attribution_rate)}</td>`;
+    <td class="no-evidence-outcome"><span class="correct-rejection">${pct(metrics.correct_rejection_rate)}</span><span class="outcome-divider">/</span><span class="false-attribution">${pct(metrics.false_attribution_rate)}</span></td>`;
   document.querySelector("#paired-setup-table tbody").innerHTML = data.cross_domain_results.map((row) => `
     <tr class="paired-group-start">
       <td rowspan="2"><strong>Setup ${row.setup_number}</strong></td>
