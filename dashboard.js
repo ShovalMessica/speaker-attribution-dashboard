@@ -104,6 +104,10 @@
   document.getElementById("coarse-probing-positions").innerHTML = coarseProbing.positions
     .map((position) => `<li>${escapeHtml(position)}</li>`).join("");
   document.getElementById("coarse-probing-excluded").textContent = coarseProbing.excluded;
+  document.getElementById("coarse-gate-intro").textContent = coarseProbing.gate_definition.intro;
+  document.getElementById("coarse-gate-labels").innerHTML = coarseProbing.gate_definition.labels
+    .map((label) => `<dt>${escapeHtml(label.label)}</dt><dd>${escapeHtml(label.value)}</dd>`).join("");
+  document.getElementById("coarse-gate-excluded").textContent = coarseProbing.gate_definition.excluded;
 
   const factorData = data.factor_effects;
   const factorResearch = factorData.analysis;

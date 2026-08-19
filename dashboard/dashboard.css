@@ -184,6 +184,8 @@ h1 {
 .coarse-probing-positions { margin: 0 0 16px; padding-left: 22px; }
 .coarse-probing-positions li { margin-bottom: 6px; }
 .coarse-probing-excluded { color: var(--muted) !important; font-size: 12px; }
+.coarse-gate-heading { margin-top: 28px !important; }
+.coarse-gate-labels { grid-template-columns: 150px minmax(0, 1fr); margin-bottom: 12px; }
 .task-given,
 .evidence-list,
 .data-source-list { margin: 0 0 18px; padding-left: 22px; }
