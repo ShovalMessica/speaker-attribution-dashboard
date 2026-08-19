@@ -239,6 +239,7 @@ h1 {
 .evaluation-status { display: inline-block; margin-top: 5px; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; }
 .evaluation-status.complete { color: #176b55; background: #e5f4ee; }
 .evaluation-status.in-progress { color: #7a4f00; background: #fff1cc; }
+.evaluation-status.paused { color: #6b4f00; background: #fff3d6; }
 .evaluation-status.queued { color: #687386; background: #eef1f5; }
 .real-data { color: #315f87; }
 .synthetic-data { color: var(--accent); }

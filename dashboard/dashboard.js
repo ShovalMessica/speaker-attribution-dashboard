@@ -53,7 +53,7 @@
     <td>${decimal(metrics.auroc)}</td>
     <td>${pct(metrics.near_90_fpr)}</td>
     <td class="no-evidence-outcome"><span class="correct-rejection">${pct(metrics.correct_rejection_rate)}</span><span class="outcome-divider">/</span><span class="false-attribution">${pct(metrics.false_attribution_rate)}</span></td>` :
-    `<td class="metric-missing progress-message" colspan="6">${progress?.status === "in_progress" ? "In progress · waiting for the first complete pair" : progress?.status === "queued" ? "Queued" : "—"}</td>`;
+    `<td class="metric-missing progress-message" colspan="6">${progress?.status === "in_progress" ? "In progress · waiting for the first complete pair" : progress?.status === "paused" ? "Paused · resumable" : progress?.status === "queued" ? "Queued" : "—"}</td>`;
   const pairedDatasetCell = (label, className, metrics, showCounts, progress = null) => {
     const scheduled = progress && progress.status !== "not_scheduled";
     const count = scheduled
@@ -61,6 +61,8 @@
       : metrics ? `${metrics.evidence_examples} pairs` : "";
     const status = progress?.status === "in_progress"
       ? '<span class="evaluation-status in-progress">In progress</span>'
+      : progress?.status === "paused"
+        ? '<span class="evaluation-status paused">Paused · resumable</span>'
       : progress?.status === "queued"
         ? '<span class="evaluation-status queued">Queued</span>'
         : progress?.status === "completed"
