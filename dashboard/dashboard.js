@@ -52,8 +52,9 @@
     <td>${pct(metrics.unknown_rate)}</td>
     <td>${decimal(metrics.auroc)}</td>
     <td>${pct(metrics.near_90_fpr)}</td>
-    <td class="no-evidence-outcome"><span class="correct-rejection">${pct(metrics.correct_rejection_rate)}</span><span class="outcome-divider">/</span><span class="false-attribution">${pct(metrics.false_attribution_rate)}</span></td>` :
-    `<td class="metric-missing progress-message" colspan="6">${progress?.status === "in_progress" ? "In progress · waiting for the first complete pair" : progress?.status === "paused" ? "Paused · resumable" : progress?.status === "queued" ? "Queued" : "—"}</td>`;
+    <td class="no-evidence-outcome"><span class="correct-rejection">${pct(metrics.correct_rejection_rate)}</span><span class="outcome-divider">/</span><span class="false-attribution">${pct(metrics.false_attribution_rate)}</span></td>
+    <td>${metrics.golden_pairs} / ${metrics.evidence_examples}</td>` :
+    `<td class="metric-missing progress-message" colspan="7">${progress?.status === "in_progress" ? "In progress · waiting for the first complete pair" : progress?.status === "paused" ? "Paused · resumable" : progress?.status === "queued" ? "Queued" : "—"}</td>`;
   const pairedDatasetCell = (label, className, metrics, showCounts, progress = null) => {
     const scheduled = progress && progress.status !== "not_scheduled";
     const count = scheduled
