@@ -191,12 +191,17 @@ h1 {
 .coarse-probe-chart-control { display: flex; gap: 10px; align-items: center; margin: 18px 0 8px; }
 .coarse-probe-chart-control label { font-size: 13px; font-weight: 700; }
 .coarse-probe-chart-control select { padding: 6px 28px 6px 9px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); }
+.coarse-probe-chart-title { margin: 14px 0 6px !important; font-weight: 700; color: var(--ink) !important; }
+.coarse-probe-split-legend { display: flex; gap: 22px; margin: 0 0 4px; font-size: 13px; font-weight: 700; }
+.coarse-probe-split-legend span::before { display: inline-block; width: 20px; margin-right: 7px; border-top: 3px solid; content: ""; vertical-align: middle; }
+.coarse-probe-split-legend .train::before { border-color: #1f2937; }
+.coarse-probe-split-legend .validation::before { border-color: #17705a; }
+.coarse-probe-split-legend .test::before { border-color: #356b9a; }
 .coarse-probe-chart { max-width: 840px; margin-bottom: 12px; }
 .coarse-probe-chart svg { display: block; width: 100%; height: auto; }
 .probe-grid { stroke: #e1e6ee; stroke-width: 1; }
 .probe-axis-label,
-.probe-axis-title,
-.probe-legend-label { fill: #465168; font: 11px/1.2 system-ui, sans-serif; }
+.probe-axis-title { fill: #465168; font: 11px/1.2 system-ui, sans-serif; }
 .probe-axis-title { font-weight: 700; }
 .probe-line { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
 .probe-point { stroke: #fff; stroke-width: 1.5; }
