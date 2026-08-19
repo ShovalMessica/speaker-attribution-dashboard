@@ -370,13 +370,13 @@ tbody tr:hover { background: #f8fafb; }
 .factor-research-section { padding: 25px 0; border-top: 1px solid var(--line); }
 .factor-research-section > h3 { margin: 0 0 4px; font-size: 20px; }
 .factor-section-note { margin: 0 0 16px; color: var(--muted); font-size: 12px; }
+.factor-variable-list { max-width: 900px; margin: 13px 0 24px; padding-left: 24px; }
+.factor-variable-list li { margin: 0 0 7px; padding-left: 3px; color: var(--ink); font-size: 13px; line-height: 1.5; }
+.factor-variable-list strong { color: #111827; }
+.factor-shared-heading { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
 .factor-shared-conditions { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-bottom: 19px; }
 .factor-shared-conditions span { color: var(--ink); font-size: 11px; }
 .factor-shared-conditions span::before { content: "·"; margin-right: 7px; color: var(--accent); font-weight: 900; }
-.factor-variable-map { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
-.factor-variable-map article { display: grid; grid-template-columns: minmax(135px, .7fr) minmax(0, 1.5fr); gap: 12px; padding: 9px 0; border-top: 1px solid #e8ebef; }
-.factor-variable-map strong { font-size: 12px; }
-.factor-variable-map span { color: var(--ink); font-size: 11px; line-height: 1.45; }
 .factor-quiet-note { max-width: 920px; margin: 13px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
 .factor-analysis-figure { margin: 0; padding: 0; }
 
@@ -822,10 +822,8 @@ tbody tr:hover { background: #f8fafb; }
   .weekly-goal-grid,
   .weekly-factor-plots,
   .weekly-deep-dive-plots { grid-template-columns: 1fr; }
-  .factor-variable-map,
   .factor-trace-summary,
   .factor-research-lessons { grid-template-columns: 1fr; }
-  .factor-variable-map article { grid-template-columns: 1fr; gap: 3px; }
   .factor-trace-summary > article { padding: 16px 0; }
   .factor-trace-summary > article + article { border-left: 0; border-top: 1px solid #dfe4e9; }
   .weekly-overview-grid > div + div { padding-left: 0; padding-top: 16px; border-left: 0; border-top: 1px solid var(--line); }

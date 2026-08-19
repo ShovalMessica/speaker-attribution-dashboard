@@ -103,7 +103,7 @@
   document.getElementById("factor-shared-conditions").innerHTML = factorResearch.shared_conditions
     .map((condition) => `<span>${escapeHtml(condition)}</span>`).join("");
   document.getElementById("factor-variable-map").innerHTML = factorResearch.variables
-    .map((variable) => `<article><strong>${escapeHtml(variable.label)}</strong><span>${escapeHtml(variable.values)}</span></article>`).join("");
+    .map((variable) => `<li><strong>${escapeHtml(variable.label)}:</strong> ${escapeHtml(variable.values)}</li>`).join("");
   document.getElementById("factor-robustness-note").textContent = factorResearch.robustness_check;
   const factorViews = [
     { id: "final_cue", title: "Final decision cue", baselineLabel: "Require one unambiguous identity", variantLabel: "Choose the best-supported identity", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The model committed more often in all three comparisons. Later paired tests confirmed the cost: false attribution rose by 22 points on Real data and 24 points on Synthetic data." },
