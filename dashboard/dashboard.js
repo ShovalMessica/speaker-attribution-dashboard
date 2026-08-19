@@ -108,6 +108,10 @@
   document.getElementById("coarse-gate-labels").innerHTML = coarseProbing.gate_definition.labels
     .map((label) => `<dt>${escapeHtml(label.label)}</dt><dd>${escapeHtml(label.value)}</dd>`).join("");
   document.getElementById("coarse-gate-excluded").textContent = coarseProbing.gate_definition.excluded;
+  document.getElementById("coarse-split-intro").textContent = coarseProbing.split.intro;
+  document.getElementById("coarse-split-counts").innerHTML = coarseProbing.split.counts
+    .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`).join("");
+  document.getElementById("coarse-split-note").textContent = coarseProbing.split.note;
 
   const factorData = data.factor_effects;
   const factorResearch = factorData.analysis;
