@@ -186,6 +186,26 @@ h1 {
 .coarse-probing-excluded { color: var(--muted) !important; font-size: 12px; }
 .coarse-gate-heading { margin-top: 28px !important; }
 .coarse-gate-labels { grid-template-columns: 150px minmax(0, 1fr); margin-bottom: 12px; }
+.coarse-probe-summary { max-width: 820px; font-weight: 700; color: var(--ink) !important; }
+.coarse-probe-counts { max-width: 900px; font-size: 13px; }
+.coarse-probe-chart-control { display: flex; gap: 10px; align-items: center; margin: 18px 0 8px; }
+.coarse-probe-chart-control label { font-size: 13px; font-weight: 700; }
+.coarse-probe-chart-control select { padding: 6px 28px 6px 9px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); }
+.coarse-probe-chart { max-width: 840px; margin-bottom: 12px; }
+.coarse-probe-chart svg { display: block; width: 100%; height: auto; }
+.probe-grid { stroke: #e1e6ee; stroke-width: 1; }
+.probe-axis-label,
+.probe-axis-title,
+.probe-legend-label { fill: #465168; font: 11px/1.2 system-ui, sans-serif; }
+.probe-axis-title { font-weight: 700; }
+.probe-line { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.probe-point { stroke: #fff; stroke-width: 1.5; }
+.probe-line.train { stroke: #1f2937; }
+.probe-line.validation { stroke: #17705a; }
+.probe-line.test { stroke: #356b9a; }
+.probe-point.train { fill: #1f2937; }
+.probe-point.validation { fill: #17705a; }
+.probe-point.test { fill: #356b9a; }
 .task-given,
 .evidence-list,
 .data-source-list { margin: 0 0 18px; padding-left: 22px; }

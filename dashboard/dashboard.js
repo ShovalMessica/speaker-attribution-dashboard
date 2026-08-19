@@ -113,6 +113,43 @@
     .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`).join("");
   document.getElementById("coarse-split-stratification").textContent = coarseProbing.split.stratification;
   document.getElementById("coarse-split-note").textContent = coarseProbing.split.note;
+  const probe = coarseProbing.probe;
+  document.getElementById("coarse-probe-results-intro").textContent = probe.intro;
+  document.getElementById("coarse-probe-results-summary").textContent = probe.summary;
+  document.getElementById("coarse-probe-results-counts").textContent = probe.counts
+    .map((row) => `${row.split === "validation" ? "Validation" : row.split[0].toUpperCase() + row.split.slice(1)} ${row.eligible}: ${row.correct} correct, ${row.wrong} wrong, ${row.false_attribution} false attribution`)
+    .join(" · ");
+  document.getElementById("coarse-probe-training").textContent = probe.training;
+  document.getElementById("coarse-probe-threshold").textContent = probe.threshold;
+  document.getElementById("coarse-probe-limitations").textContent = probe.limitations;
+  const probeMetricSelect = document.getElementById("coarse-probe-metric");
+  probeMetricSelect.innerHTML = probe.metrics
+    .map((metric) => `<option value="${escapeHtml(metric.id)}">${escapeHtml(metric.label)}</option>`)
+    .join("");
+  const renderProbeChart = () => {
+    const metric = probe.metrics.find((item) => item.id === probeMetricSelect.value) || probe.metrics[0];
+    const bounds = { left: 54, right: 805, top: 26, bottom: 292 };
+    const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (probe.layers.length - 1);
+    const y = (value) => bounds.bottom - Number(value) * (bounds.bottom - bounds.top);
+    const series = [
+      { id: "train", label: "Train" },
+      { id: "validation", label: "Validation" },
+      { id: "test", label: "Test" },
+    ];
+    document.getElementById("coarse-probe-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} by transformer layer for train, validation, and test">
+      ${[0, .25, .5, .75, 1].map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
+      ${probe.layers.map((layer, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${layer.layer}</text>`).join("")}
+      ${series.map((item) => {
+        const points = probe.layers.map((layer, index) => `${x(index)},${y(layer[item.id][metric.field])}`).join(" ");
+        return `<polyline class="probe-line ${item.id}" points="${points}"/>${probe.layers.map((layer, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(layer[item.id][metric.field])}" r="3.5"><title>${item.label} · layer ${layer.layer}: ${pct(layer[item.id][metric.field])}</title></circle>`).join("")}`;
+      }).join("")}
+      <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
+      <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
+      ${series.map((item, index) => `<line class="probe-line ${item.id}" x1="${575 + index * 82}" y1="12" x2="${595 + index * 82}" y2="12"/><text class="probe-legend-label" x="${600 + index * 82}" y="16">${item.label}</text>`).join("")}
+    </svg>`;
+  };
+  probeMetricSelect.addEventListener("change", renderProbeChart);
+  renderProbeChart();
 
   const factorData = data.factor_effects;
   const factorResearch = factorData.analysis;
