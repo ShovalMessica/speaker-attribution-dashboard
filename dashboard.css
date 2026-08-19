@@ -197,6 +197,7 @@ h1 {
 .coarse-probe-split-legend .train::before { border-color: #1f2937; }
 .coarse-probe-split-legend .validation::before { border-color: #17705a; }
 .coarse-probe-split-legend .test::before { border-color: #356b9a; }
+.coarse-probe-line-key { margin: 2px 0 4px !important; color: var(--muted) !important; font-size: 12px; }
 .coarse-probe-chart { max-width: 840px; margin-bottom: 12px; }
 .coarse-probe-chart svg { display: block; width: 100%; height: auto; }
 .probe-grid { stroke: #e1e6ee; stroke-width: 1; }
@@ -204,10 +205,14 @@ h1 {
 .probe-axis-title { fill: #465168; font: 11px/1.2 system-ui, sans-serif; }
 .probe-axis-title { font-weight: 700; }
 .probe-line { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.probe-baseline { stroke-width: 1.8; stroke-dasharray: 7 5; opacity: .8; }
 .probe-point { stroke: #fff; stroke-width: 1.5; }
 .probe-line.train { stroke: #1f2937; }
 .probe-line.validation { stroke: #17705a; }
 .probe-line.test { stroke: #356b9a; }
+.probe-baseline.train { stroke: #1f2937; }
+.probe-baseline.validation { stroke: #17705a; }
+.probe-baseline.test { stroke: #356b9a; }
 .probe-point.train { fill: #1f2937; }
 .probe-point.validation { fill: #17705a; }
 .probe-point.test { fill: #356b9a; }

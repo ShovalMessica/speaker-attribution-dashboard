@@ -138,6 +138,7 @@
       { id: "validation", label: "Validation" },
       { id: "test", label: "Test" },
     ];
+    const baseline = probe.output_probability_baseline.splits;
     document.getElementById("coarse-probe-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} by transformer layer for train, validation, and test">
       ${[0, .25, .5, .75, 1].map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
       ${probe.layers.map((layer, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${layer.layer}</text>`).join("")}
@@ -145,6 +146,7 @@
         const points = probe.layers.map((layer, index) => `${x(index)},${y(layer[item.id][metric.field])}`).join(" ");
         return `<polyline class="probe-line ${item.id}" points="${points}"/>${probe.layers.map((layer, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(layer[item.id][metric.field])}" r="3.5"><title>${item.label} · layer ${layer.layer}: ${pct(layer[item.id][metric.field])}</title></circle>`).join("")}`;
       }).join("")}
+      ${series.map((item) => `<line class="probe-baseline ${item.id}" x1="${bounds.left}" y1="${y(baseline[item.id][metric.field])}" x2="${bounds.right}" y2="${y(baseline[item.id][metric.field])}"><title>${item.label} output-probability baseline: ${pct(baseline[item.id][metric.field])}</title></line>`).join("")}
       <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
       <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
     </svg>`;
