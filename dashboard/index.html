@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Speaker Attribution Setup Evaluation</title>
-  <link rel="stylesheet" href="dashboard.css?v=20260818-confidence-gate-skeleton-v34">
+  <link rel="stylesheet" href="dashboard.css?v=20260819-setup20-prompt-v35">
 </head>
 <body>
   <main>
@@ -153,6 +153,90 @@
         <p class="data-composition-note">
           Real: 291 pairs from 305 accepted evidence events. Synthetic: 400 pairs,
           evenly split between greeting/call and question/request evidence.
+        </p>
+      </section>
+
+      <section class="task-data-section" aria-labelledby="prompt-example-heading">
+        <h3 id="prompt-example-heading">Setup 20 prompt example</h3>
+        <p class="prompt-example-meta">
+          Actual Real data evidence input · target <code>Speaker 2</code> · expected answer <code>C</code>
+        </p>
+        <pre class="prompt-example"><code>Identify the named participant hidden behind the anonymous label
+Speaker 2.
+
+IMPORTANT: `Speaker 1`, `Speaker 2`, and similar labels are anonymous aliases
+for people in the participant list. They are not additional people.
+
+PARTICIPANTS:
+A: Min Hu
+B: Fei Zuo
+C: Sunny Deng
+D: Jacky Kang
+E: Zoltan Romocsa
+F: Qiongfang Zhang
+
+Use the ordinary transcript to infer the identity:
+
+- An explicit target self-identification (`I am NAME` or `my name is NAME`) is
+  sufficient evidence.
+- If another speaker directly calls, questions, requests, greets, or invites
+  exactly one named participant and Speaker 2 gives the immediate
+  response, infer that Speaker 2 is the named participant.
+- A name spoken by Speaker 2, such as `You go, NAME` or `Hey NAME`,
+  normally names another person rather than the target.
+- If a speaker refers to a named person as `he`, `she`, or `they` in the same
+  statement, that person is being discussed rather than directly addressed.
+- Choose UNKNOWN when there is no sufficient identity evidence, several
+  people are addressed, another speaker intervenes, or the evidence conflicts.
+
+Consecutive rows from one anonymous speaker are one turn.
+
+Do not guess from meeting topics or from the participant-list order. Once one
+identity is unambiguously established, state only
+`Speaker 2 = NAME = ID` in your reasoning and stop.
+
+TRANSCRIPT:
+Speaker 5: Uh-huh.
+Speaker 6: We used to get five hundred thousand but we got a little bit more core now, so I wouldn't be surprised if we are closer to six hundred, yes.
+Speaker 5: OK.
+Speaker 5: OK, OK. Got it, got it.
+Speaker 6: Yes.
+Speaker 6: It it's a lot of CPU.
+Speaker 5: Yeah, it's it's a very large number.
+Speaker 5: We can't even how how how many.
+Speaker 6: And and and again, I think I had a comment in the chat uh like couple of weeks ago
+Speaker 6: I tried to get more quota last two weeks ago and I couldn't get any at least in the US
+Speaker 5: Yes.
+Speaker 5: Yes.
+Speaker 6: I couldn't get five hundred core and that's really bad.
+Speaker 5: Yeah.
+Speaker 5: Yeah so so for the so so for the current batch, I mean after the Ring Zero anyway we need to
+Speaker 5: uh uh uh gather gather the more CPU resource. I mean, we we will have our uh uh strategy
+Speaker 6: Yes, yes.
+Speaker 5: uh uh done I mean which user we we enable batch and how many
+Speaker 5: traffic we expected to to increase then we
+Speaker 5: we will put into our our Teams IoT review and hopefully that will be reviewed with also with
+Speaker 5: uh uh uh uh speech and the service uh IoT and it didn't make a decision there. Yeah.
+Speaker 6: That would be awesome.
+Speaker 6: OK. Uh again, we have a little bit of buffer. So usually we run OMTS you know
+Speaker 6: we keep like twenty percent extra cores around just you know in case some
+Speaker 5: Mm-hmm.
+Speaker 6: unexpected traffic comes in or something like that, so we will do it with extra, so we have some head room
+Speaker 5: OK.
+Speaker 6: but you know, depending how much batch traffic we expect, we may have to stop thinking about getting more .
+Speaker 5: Yes, yes, yes, yes, got it.
+Speaker 5: Yeah.
+Speaker 5: So uh so Sunny do you know do you know about the SLA uh Zoltan mentioned?
+Speaker 2: I'm not pretty sure about that.
+
+OUTPUT FORMAT:
+After `&lt;/think&gt;`, output exactly one line:
+
+FINAL: &lt;candidate ID or UNKNOWN&gt;
+
+Output only the candidate ID after `FINAL:`, never the participant name.</code></pre>
+        <p class="prompt-example-source">
+          Setup 20 · <code>BM_1031:Speaker2:group:da0540cd9550:evidence</code>
         </p>
       </section>
     </section>

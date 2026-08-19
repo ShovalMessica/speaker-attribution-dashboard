@@ -157,6 +157,20 @@ h1 {
 .task-data-section h3 { margin: 0 0 12px; font-size: 20px; }
 .task-data-section h4 { margin: 24px 0 10px; font-size: 15px; }
 .task-data-section p { margin: 0 0 13px; color: #354056; }
+.prompt-example-meta { color: var(--muted); }
+.prompt-example {
+  max-height: 520px;
+  margin: 14px 0 10px;
+  padding: 18px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f7f9fc;
+  color: #111827;
+  font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre;
+}
+.prompt-example-source { color: var(--muted) !important; font-size: 12px; }
 .task-given,
 .evidence-list,
 .data-source-list { margin: 0 0 18px; padding-left: 22px; }
