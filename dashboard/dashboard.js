@@ -97,6 +97,14 @@
     { showCounts: true, showConclusions: false }
   );
 
+  const coarseProbing = data.coarse_grained_probing;
+  document.getElementById("coarse-probing-intro").textContent = coarseProbing.intro;
+  document.getElementById("coarse-probing-facts").innerHTML = coarseProbing.facts
+    .map((fact) => `<dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd>`).join("");
+  document.getElementById("coarse-probing-positions").innerHTML = coarseProbing.positions
+    .map((position) => `<li>${escapeHtml(position)}</li>`).join("");
+  document.getElementById("coarse-probing-excluded").textContent = coarseProbing.excluded;
+
   const factorData = data.factor_effects;
   const factorResearch = factorData.analysis;
   document.getElementById("factor-effects-summary").textContent = factorResearch.headline;
