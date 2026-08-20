@@ -140,18 +140,38 @@
     .join("");
   const renderProbeChart = () => {
     const metric = probe.metrics.find((item) => item.id === probeMetricSelect.value) || probe.metrics[0];
-    document.getElementById("coarse-probe-chart-title").textContent = `${metric.label} by layer · Train, Validation, and Test`;
     const bounds = { left: 54, right: 805, top: 26, bottom: 292 };
     const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (probe.layers.length - 1);
-    const y = (value) => bounds.bottom - Number(value) * (bounds.bottom - bounds.top);
     const series = [
       { id: "train", label: "Train" },
       { id: "validation", label: "Validation" },
       { id: "test", label: "Test" },
     ];
     const baseline = probe.output_probability_baseline.splits;
-    document.getElementById("coarse-probe-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} by transformer layer for train, validation, and test">
-      ${[0, .25, .5, .75, 1].map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
+    const displayedValues = series.flatMap((item) => [
+      ...probe.layers.map((layer) => Number(layer[item.id][metric.field])),
+      Number(baseline[item.id][metric.field]),
+    ]);
+    const rawMin = Math.min(...displayedValues);
+    const rawMax = Math.max(...displayedValues);
+    const rawRange = rawMax - rawMin;
+    const tickStep = rawRange > .6 ? .2 : rawRange > .3 ? .1 : .05;
+    let yMin = Math.max(0, Math.floor((rawMin - .02) / tickStep) * tickStep);
+    let yMax = Math.min(1, Math.ceil((rawMax + .02) / tickStep) * tickStep);
+    while (yMax - yMin < 4 * tickStep && (yMin > 0 || yMax < 1)) {
+      if (yMin > 0) yMin = Math.max(0, yMin - tickStep);
+      if (yMax < 1 && yMax - yMin < 4 * tickStep) yMax = Math.min(1, yMax + tickStep);
+    }
+    const yTicks = Array.from(
+      { length: Math.round((yMax - yMin) / tickStep) + 1 },
+      (_, index) => yMin + index * tickStep
+    );
+    const y = (value) => bounds.bottom
+      - ((Number(value) - yMin) / (yMax - yMin)) * (bounds.bottom - bounds.top);
+    const rangeLabel = `${Math.round(yMin * 100)}–${Math.round(yMax * 100)}%`;
+    document.getElementById("coarse-probe-chart-title").textContent = `${metric.label} by layer · Focused y-axis: ${rangeLabel}`;
+    document.getElementById("coarse-probe-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} by transformer layer with focused y-axis ${rangeLabel}">
+      ${yTicks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
       ${probe.layers.map((layer, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${layer.layer}</text>`).join("")}
       ${series.map((item) => {
         const points = probe.layers.map((layer, index) => `${x(index)},${y(layer[item.id][metric.field])}`).join(" ");
