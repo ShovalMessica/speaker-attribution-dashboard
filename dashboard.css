@@ -210,6 +210,16 @@ h1 {
 .coarse-probe-line-key { margin: 2px 0 4px !important; color: var(--ink) !important; font-size: 13px; }
 .coarse-probe-chart { max-width: 840px; margin-bottom: 12px; }
 .coarse-probe-chart svg { display: block; width: 100%; height: auto; }
+.coarse-probe-03-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 1100px; margin: 22px 0 18px; }
+.coarse-probe-03-chart-card { margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 8px; }
+.coarse-probe-03-chart-card h4 { margin: 0 0 8px; font-size: 15px; }
+.coarse-probe-03-chart-card svg { display: block; width: 100%; height: auto; }
+.coarse-probe-03-legend { display: flex; gap: 18px; margin-bottom: 6px; font-size: 12px; font-weight: 700; }
+.coarse-probe-03-legend span::before { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border-radius: 2px; content: ""; vertical-align: -2px; }
+.coarse-probe-03-legend .experiment-02::before { background: #1f2937; }
+.coarse-probe-03-legend .experiment-03::before { background: #17705a; }
+.probe-comparison-bar.experiment-02 { fill: #1f2937; }
+.probe-comparison-bar.experiment-03 { fill: #17705a; }
 .probe-grid { stroke: #e1e6ee; stroke-width: 1; }
 .probe-axis-label,
 .probe-axis-title { fill: #000; font: 11px/1.2 system-ui, sans-serif; }
@@ -891,5 +901,6 @@ tbody tr:hover { background: #f8fafb; }
   .weekly-behavior-label { display: block; }
   .weekly-behavior-label span { display: block; }
   .coarse-probing-facts { grid-template-columns: 1fr; gap: 3px; }
+  .coarse-probe-03-charts { grid-template-columns: 1fr; }
   .coarse-probing-facts dd { margin-bottom: 8px; }
 }
