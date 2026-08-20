@@ -119,6 +119,7 @@
     .join("");
   document.getElementById("coarse-probe-results-summary").textContent = probe.summary;
   document.getElementById("coarse-probe-accuracy-definition").textContent = probe.accuracy_definition;
+  document.getElementById("coarse-probe-chart-description").textContent = probe.chart_description;
   document.getElementById("coarse-probe-results-counts").innerHTML = probe.counts
     .map((row) => {
       const split = row.split === "validation"
