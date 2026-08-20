@@ -289,6 +289,32 @@
   probe02MetricSelect.addEventListener("change", renderProbe02Chart);
   renderProbe02Chart();
 
+  const probe03 = coarseProbing.probe_experiment_03;
+  document.getElementById("coarse-probe-03-input").innerHTML = probe03.input
+    .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
+    .join("");
+  document.getElementById("coarse-probe-03-data-usage-note").textContent = probe03.data_usage.note;
+  document.getElementById("coarse-probe-03-data-usage").innerHTML = probe03.data_usage.rows
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.stage)}</th><td>${escapeHtml(row.data)}</td><td>${escapeHtml(row.examples)}</td><td>${escapeHtml(row.use)}</td></tr>`)
+    .join("");
+  document.getElementById("coarse-probe-03-counts").innerHTML = probe03.counts
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.source)}</th><td>${row.correct}</td><td>${row.wrong}</td><td>${row.false_attribution}</td><td>${row.eligible}</td></tr>`)
+    .join("");
+  document.getElementById("coarse-probe-03-folds").innerHTML = probe03.folds
+    .map((row) => `<tr><th scope="row">${row.fold}</th><td>${row.train.correct} / ${row.train.wrong} / ${row.train.false_attribution} / ${row.train.total}</td><td>${row.validation.correct} / ${row.validation.wrong} / ${row.validation.false_attribution} / ${row.validation.total}</td></tr>`)
+    .join("");
+  document.getElementById("coarse-probe-03-comparison").innerHTML = probe03.comparison
+    .map((row) => {
+      const format = (value) => row.metric === "AUROC" ? Number(value).toFixed(3) : pct(value);
+      const delta = row.metric === "AUROC"
+        ? `${row.delta >= 0 ? "+" : ""}${Number(row.delta).toFixed(3)}`
+        : `${row.delta >= 0 ? "+" : ""}${(100 * Number(row.delta)).toFixed(1)} pp`;
+      return `<tr><th scope="row">${escapeHtml(row.evaluation)}</th><td>${escapeHtml(row.metric)}</td><td>${format(row.experiment_02)}</td><td>${format(row.experiment_03)}</td><td>${delta}</td></tr>`;
+    })
+    .join("");
+  document.getElementById("coarse-probe-03-summary").textContent = probe03.summary;
+  document.getElementById("coarse-probe-03-conclusion").textContent = probe03.conclusion;
+
   const realTransfer = coarseProbing.real_transfer;
   document.getElementById("coarse-probe-real-input").innerHTML = realTransfer.input
     .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
