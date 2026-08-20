@@ -215,6 +215,10 @@
   document.getElementById("coarse-probe-02-input").innerHTML = probe02.input
     .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
     .join("");
+  document.getElementById("coarse-probe-02-data-usage-note").textContent = probe02.data_usage.note;
+  document.getElementById("coarse-probe-02-data-usage").innerHTML = probe02.data_usage.rows
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.stage)}</th><td>${escapeHtml(row.data)}</td><td>${escapeHtml(row.examples)}</td><td>${escapeHtml(row.use)}</td></tr>`)
+    .join("");
   document.getElementById("coarse-probe-02-summary").textContent = probe02.summary;
   document.getElementById("coarse-probe-02-accuracy-definition").textContent = probe02.accuracy_definition;
   document.getElementById("coarse-probe-02-chart-description").textContent = probe02.chart_description;
