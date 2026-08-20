@@ -285,6 +285,20 @@
   probe02MetricSelect.addEventListener("change", renderProbe02Chart);
   renderProbe02Chart();
 
+  const realTransfer = coarseProbing.real_transfer;
+  document.getElementById("coarse-probe-real-input").innerHTML = realTransfer.input
+    .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
+    .join("");
+  document.getElementById("coarse-probe-real-note").textContent = realTransfer.note;
+  document.getElementById("coarse-probe-real-results").innerHTML = realTransfer.rows
+    .map((row) => {
+      const format = (value) => row.label === "AUROC" ? Number(value).toFixed(3) : pct(value);
+      const interval = `${format(row.gate_interval.lower_95pct)}–${format(row.gate_interval.upper_95pct)}`;
+      return `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${format(row.baseline)}</td><td>${format(row.gate)}</td><td>${interval}</td></tr>`;
+    })
+    .join("");
+  document.getElementById("coarse-probe-real-conclusion").textContent = realTransfer.conclusion;
+
   const factorData = data.factor_effects;
   const factorResearch = factorData.analysis;
   document.getElementById("factor-effects-summary").textContent = factorResearch.headline;
