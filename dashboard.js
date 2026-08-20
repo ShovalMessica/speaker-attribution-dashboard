@@ -312,34 +312,43 @@
       return `<tr><th scope="row">${escapeHtml(row.evaluation)}</th><td>${escapeHtml(row.metric)}</td><td>${format(row.experiment_02)}</td><td>${format(row.experiment_03)}</td><td>${delta}</td></tr>`;
     })
     .join("");
-  const renderProbe03Comparison = (evaluationPrefix, elementId) => {
-    const rows = probe03.comparison.filter((row) => row.evaluation.startsWith(evaluationPrefix));
-    const shortLabels = {
-      "Gate accuracy": "Accuracy",
-      "AUROC": "AUROC",
-      "Correct-attribution acceptance": "Correct accept.",
-      "Wrong-attribution rejection": "Wrong reject.",
-      "False-attribution rejection": "False reject.",
-    };
-    const plot = { left: 42, right: 540, top: 18, bottom: 246 };
-    const groupWidth = (plot.right - plot.left) / rows.length;
-    const barWidth = Math.min(28, groupWidth * .28);
-    const y = (value) => plot.bottom - Number(value) * (plot.bottom - plot.top);
-    const ticks = [0, .25, .5, .75, 1];
-    document.getElementById(elementId).innerHTML = `<svg viewBox="0 0 565 300" role="img" aria-label="${escapeHtml(evaluationPrefix)} Experiment 02 and Experiment 03 gate metrics">
-      ${ticks.map((tick) => `<line class="probe-grid" x1="${plot.left}" y1="${y(tick)}" x2="${plot.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="35" y="${y(tick) + 4}" text-anchor="end">${Math.round(100 * tick)}%</text>`).join("")}
-      ${rows.map((row, index) => {
-        const center = plot.left + groupWidth * (index + .5);
-        const experiment02Height = plot.bottom - y(row.experiment_02);
-        const experiment03Height = plot.bottom - y(row.experiment_03);
-        return `<rect class="probe-comparison-bar experiment-02" x="${center - barWidth - 2}" y="${y(row.experiment_02)}" width="${barWidth}" height="${experiment02Height}"><title>Experiment 02 · ${escapeHtml(row.metric)}: ${pct(row.experiment_02)}</title></rect>
-          <rect class="probe-comparison-bar experiment-03" x="${center + 2}" y="${y(row.experiment_03)}" width="${barWidth}" height="${experiment03Height}"><title>Experiment 03 · ${escapeHtml(row.metric)}: ${pct(row.experiment_03)}</title></rect>
-          <text class="probe-axis-label" x="${center}" y="270" text-anchor="middle">${escapeHtml(shortLabels[row.metric])}</text>`;
+  const probe03MetricSelect = document.getElementById("coarse-probe-03-metric");
+  const probe03MetricLabels = {
+    accuracy: "Gate accuracy",
+    auroc: "AUROC",
+    correct_attribution_acceptance_tpr: "Correct-attribution acceptance",
+    wrong_attribution_rejection: "Wrong-attribution rejection",
+    false_attribution_rejection: "False-attribution rejection",
+  };
+  const renderProbe03LayerChart = () => {
+    const field = probe03MetricSelect.value;
+    const label = probe03MetricLabels[field];
+    const bounds = { left: 54, right: 805, top: 26, bottom: 292 };
+    const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (probe03.layers.length - 1);
+    const series = [
+      { id: "experiment-02", label: "Experiment 02 · Synthetic OOF", field: "experiment_02_synthetic" },
+      { id: "experiment-03", label: "Experiment 03 · Synthetic OOF", field: "experiment_03_synthetic" },
+      { id: "experiment-03-real", label: "Experiment 03 · Real data", field: "experiment_03_real" },
+    ];
+    const values = series.flatMap((item) => probe03.layers.map((layer) => Number(layer[item.field][field])));
+    const step = .1;
+    const yMin = Math.max(0, Math.floor((Math.min(...values) - .04) / step) * step);
+    const yMax = Math.min(1, Math.ceil((Math.max(...values) + .04) / step) * step);
+    const y = (value) => bounds.bottom - ((Number(value) - yMin) / (yMax - yMin)) * (bounds.bottom - bounds.top);
+    const ticks = Array.from({ length: Math.round((yMax - yMin) / step) + 1 }, (_, index) => yMin + index * step);
+    document.getElementById("coarse-probe-03-layer-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(label)} across transformer layers">
+      ${ticks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
+      ${probe03.layers.map((layer, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${layer.layer}</text>`).join("")}
+      ${series.map((item) => {
+        const points = probe03.layers.map((layer, index) => `${x(index)},${y(layer[item.field][field])}`).join(" ");
+        return `<polyline class="probe-line ${item.id}" points="${points}"/>${probe03.layers.map((layer, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(layer[item.field][field])}" r="3.5"><title>${item.label} · layer ${layer.layer}: ${pct(layer[item.field][field])}</title></circle>`).join("")}`;
       }).join("")}
+      <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
+      <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(label)}</text>
     </svg>`;
   };
-  renderProbe03Comparison("Held-out Synthetic", "coarse-probe-03-synthetic-chart");
-  renderProbe03Comparison("Real data", "coarse-probe-03-real-chart");
+  probe03MetricSelect.addEventListener("change", renderProbe03LayerChart);
+  renderProbe03LayerChart();
   document.getElementById("coarse-probe-03-summary").textContent = probe03.summary;
   document.getElementById("coarse-probe-03-conclusion").textContent = probe03.conclusion;
 

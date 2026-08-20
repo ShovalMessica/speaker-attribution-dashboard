@@ -218,6 +218,7 @@ h1 {
 .coarse-probe-03-legend span::before { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border-radius: 2px; content: ""; vertical-align: -2px; }
 .coarse-probe-03-legend .experiment-02::before { background: #1f2937; }
 .coarse-probe-03-legend .experiment-03::before { background: #17705a; }
+.coarse-probe-03-legend .experiment-03-real::before { background: #356b9a; }
 .probe-comparison-bar.experiment-02 { fill: #1f2937; }
 .probe-comparison-bar.experiment-03 { fill: #17705a; }
 .probe-grid { stroke: #e1e6ee; stroke-width: 1; }
@@ -230,12 +231,18 @@ h1 {
 .probe-line.train { stroke: #000; }
 .probe-line.validation { stroke: #17705a; }
 .probe-line.test { stroke: #356b9a; }
+.probe-line.experiment-02 { stroke: #1f2937; }
+.probe-line.experiment-03 { stroke: #17705a; }
+.probe-line.experiment-03-real { stroke: #356b9a; }
 .probe-baseline.train { stroke: #000; }
 .probe-baseline.validation { stroke: #17705a; }
 .probe-baseline.test { stroke: #356b9a; }
 .probe-point.train { fill: #000; }
 .probe-point.validation { fill: #17705a; }
 .probe-point.test { fill: #356b9a; }
+.probe-point.experiment-02 { fill: #1f2937; }
+.probe-point.experiment-03 { fill: #17705a; }
+.probe-point.experiment-03-real { fill: #356b9a; }
 .task-given,
 .evidence-list,
 .data-source-list { margin: 0 0 18px; padding-left: 22px; }
