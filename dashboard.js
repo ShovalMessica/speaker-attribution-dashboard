@@ -57,8 +57,12 @@
     `<td class="metric-missing progress-message" colspan="7">${progress?.status === "in_progress" ? "In progress · waiting for the first complete pair" : progress?.status === "paused" ? "Paused · resumable" : progress?.status === "queued" ? "Queued" : "—"}</td>`;
   const pairedDatasetCell = (label, className, metrics, showCounts, progress = null) => {
     const scheduled = progress && progress.status !== "not_scheduled";
-    const count = scheduled
-      ? `${progress.completed_pairs} / ${progress.target_pairs} pairs`
+    const count = scheduled && progress.status !== "completed" && progress.target_variants
+      ? progress.completed_pairs > 0
+        ? `${progress.completed_pairs} / ${progress.target_pairs} complete pairs · ${progress.saved_variants} / ${progress.target_variants} variants`
+        : `${progress.saved_variants} / ${progress.target_variants} variants`
+      : scheduled
+        ? `${progress.completed_pairs} / ${progress.target_pairs} pairs`
       : metrics ? `${metrics.evidence_examples} pairs` : "";
     const status = progress?.status === "in_progress"
       ? '<span class="evaluation-status in-progress">In progress</span>'
@@ -71,30 +75,44 @@
           : "";
     return `<td><span class="dataset-label ${className}">${label}</span>${showCounts ? `<span class="dataset-count">${count}</span>${status}` : ""}</td>`;
   };
-  const pairedSetupRows = (rows, { showCounts = false, showConclusions = true } = {}) => rows.map((row) => `
-    <tr class="paired-group-start">
-      <td rowspan="2"><strong>Setup ${row.setup_number}</strong></td>
-      ${pairedDatasetCell("Real data", "real-data", row.real, showCounts, row.progress?.real)}
-      ${pairedMetricCells(row.real, row.progress?.real)}
-      <td rowspan="2" class="definition-cell">${setupDetails(
-        row,
-        showConclusions ? row.conclusion : null,
-        showConclusions ? row.status : null,
-        true
-      )}</td>
-    </tr>
-    <tr>
-      ${pairedDatasetCell("Synthetic data", "synthetic-data", row.synthetic, showCounts, row.progress?.synthetic)}
-      ${pairedMetricCells(row.synthetic, row.progress?.synthetic)}
-    </tr>
-  `).join("");
+  const pairedSetupRows = (
+    rows,
+    { showCounts = false, showConclusions = true, includeHardSynthetic = false } = {}
+  ) => rows.map((row) => {
+    const datasets = [
+      { key: "real", label: "Real data", className: "real-data" },
+      { key: "synthetic", label: "Initial synthetic data", className: "synthetic-data" },
+      ...(includeHardSynthetic
+        ? [{ key: "hard_synthetic", label: "Hard synthetic data", className: "hard-synthetic-data" }]
+        : []),
+    ];
+    return datasets.map((dataset, index) => `
+      <tr class="${index === 0 ? "paired-group-start" : ""}">
+        ${index === 0 ? `<td rowspan="${datasets.length}"><strong>Setup ${row.setup_number}</strong></td>` : ""}
+        ${pairedDatasetCell(
+          dataset.label,
+          dataset.className,
+          row[dataset.key],
+          showCounts,
+          row.progress?.[dataset.key]
+        )}
+        ${pairedMetricCells(row[dataset.key], row.progress?.[dataset.key])}
+        ${index === 0 ? `<td rowspan="${datasets.length}" class="definition-cell">${setupDetails(
+          row,
+          showConclusions ? row.conclusion : null,
+          showConclusions ? row.status : null,
+          true
+        )}</td>` : ""}
+      </tr>
+    `).join("");
+  }).join("");
   document.getElementById("paired-shared-settings").innerHTML = `
     <strong>Shared settings</strong>
     ${data.paired_shared_settings.map((setting) => `<span><b>${escapeHtml(setting.label)}:</b> ${escapeHtml(setting.value)}</span>`).join("")}`;
   document.querySelector("#paired-setup-table tbody").innerHTML = pairedSetupRows(data.cross_domain_results);
   document.querySelector("#full-data-table tbody").innerHTML = pairedSetupRows(
     data.full_data_results,
-    { showCounts: true, showConclusions: false }
+    { showCounts: true, showConclusions: false, includeHardSynthetic: true }
   );
 
   const coarseProbing = data.coarse_grained_probing;
@@ -197,9 +215,9 @@
     .map((variable) => `<li><strong>${escapeHtml(variable.label)}:</strong> ${escapeHtml(variable.values)}</li>`).join("");
   document.getElementById("factor-robustness-note").textContent = factorResearch.robustness_check;
   const factorViews = [
-    { id: "final_cue", title: "Final decision cue", baselineLabel: "Require one unambiguous identity", variantLabel: "Choose the best-supported identity", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The model committed more often in all three comparisons. Later paired tests confirmed the cost: false attribution rose by 22 points on Real data and 24 points on Synthetic data." },
+    { id: "final_cue", title: "Final decision cue", baselineLabel: "Require one unambiguous identity", variantLabel: "Choose the best-supported identity", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The model committed more often in all three comparisons. Later paired tests confirmed the cost: false attribution rose by 22 points on Real data and 24 points on the initial synthetic data." },
     { id: "distractor_windows", title: "Distractor-rich window selection", baselineLabel: "Ordinary valid window", variantLabel: "Same length, more other-name mentions", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The model committed more often in all three comparisons. Most additional decisions were correct; the wrong-attribution change was inconsistent." },
-    { id: "participant_scope", title: "Candidate-set size", baselineLabel: "Only identified speakers who spoke", variantLabel: "Full supplied meeting roster", metric: "correct", metricLabel: "Correct-attribution rate", takeaway: "More candidate identities reduced correct attribution in both comparisons. The synthetic corpus cannot test this factor because its supplied and speaking rosters are identical." },
+    { id: "participant_scope", title: "Candidate-set size", baselineLabel: "Only identified speakers who spoke", variantLabel: "Full supplied meeting roster", metric: "correct", metricLabel: "Correct-attribution rate", takeaway: "More candidate identities reduced correct attribution in both comparisons. The initial synthetic corpus cannot test this factor because its supplied and speaking rosters are identical." },
     { id: "candidate_placement", title: "Participant-list position", baselineLabel: "List before transcript", variantLabel: "List after transcript", metric: "wrong", metricLabel: "Wrong-attribution rate", takeaway: "Moving the same list after the transcript increased wrong attribution in both comparisons." },
     { id: "reasoning_budget", title: "Reasoning budget", baselineLabel: "Lower token allowance", variantLabel: "Higher token allowance", metric: "unknown", metricLabel: "Missed-attribution rate", takeaway: "The effect was weak: one comparison changed and one was effectively unchanged." },
     { id: "sampling_policy", title: "Sampling entropy and seed", baselineLabel: "Original sampling", variantLabel: "Entropy or seed changed", metric: "near_90_fpr", metricLabel: "FPR near 90% TPR", takeaway: "Behavioral accuracy barely moved, but probability separation changed substantially." },
@@ -438,7 +456,7 @@
       <div><span>Evidence</span><strong>${escapeHtml(current.pair_example.evidence)}</strong></div>
       <div><span>No evidence</span><strong>${escapeHtml(current.pair_example.no_evidence)}</strong></div>
     </div>
-    <p><strong>Next:</strong> finish Setup 20 on the full synthetic dataset, freeze the modeling splits, then begin gate and circuit work.</p>
+    <p><strong>Next:</strong> use the completed initial synthetic baseline and evaluate Setup 20 separately on the new hard synthetic cohort before returning to gate training.</p>
   `;
 
   const behavioralMenu = document.getElementById("behavioral-analysis-menu");
