@@ -117,9 +117,20 @@
   document.getElementById("coarse-probe-results-intro").textContent = probe.intro;
   document.getElementById("coarse-probe-results-summary").textContent = probe.summary;
   document.getElementById("coarse-probe-accuracy-definition").textContent = probe.accuracy_definition;
-  document.getElementById("coarse-probe-results-counts").textContent = probe.counts
-    .map((row) => `${row.split === "validation" ? "Validation" : row.split[0].toUpperCase() + row.split.slice(1)} ${row.eligible}: ${row.correct} correct, ${row.wrong} wrong, ${row.false_attribution} false attribution`)
-    .join(" · ");
+  document.getElementById("coarse-probe-results-counts").innerHTML = probe.counts
+    .map((row) => {
+      const split = row.split === "validation"
+        ? "Validation"
+        : row.split[0].toUpperCase() + row.split.slice(1);
+      return `<tr>
+        <th scope="row">${escapeHtml(split)}</th>
+        <td>${row.correct}</td>
+        <td>${row.wrong}</td>
+        <td>${row.false_attribution}</td>
+        <td>${row.eligible}</td>
+      </tr>`;
+    })
+    .join("");
   document.getElementById("coarse-probe-training").textContent = probe.training;
   document.getElementById("coarse-probe-threshold").textContent = probe.threshold;
   document.getElementById("coarse-probe-limitations").textContent = probe.limitations;
