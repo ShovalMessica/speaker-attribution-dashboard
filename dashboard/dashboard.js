@@ -206,6 +206,75 @@
   probeMetricSelect.addEventListener("change", renderProbeChart);
   renderProbeChart();
 
+  const probe02 = coarseProbing.probe_experiment_02;
+  document.getElementById("coarse-probe-02-input").innerHTML = probe02.input
+    .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
+    .join("");
+  document.getElementById("coarse-probe-02-summary").textContent = probe02.summary;
+  document.getElementById("coarse-probe-02-accuracy-definition").textContent = probe02.accuracy_definition;
+  document.getElementById("coarse-probe-02-chart-description").textContent = probe02.chart_description;
+  document.getElementById("coarse-probe-02-training").textContent = probe02.training;
+  document.getElementById("coarse-probe-02-threshold").textContent = probe02.threshold;
+  document.getElementById("coarse-probe-02-limitations").textContent = probe02.limitations;
+  document.getElementById("coarse-probe-02-counts").innerHTML = probe02.counts
+    .map((row) => `<tr>
+      <th scope="row">${escapeHtml(row.split)}</th>
+      <td>${row.correct}</td>
+      <td>${row.wrong}</td>
+      <td>${row.false_attribution}</td>
+      <td>${row.eligible}</td>
+    </tr>`)
+    .join("");
+  const probe02MetricSelect = document.getElementById("coarse-probe-02-metric");
+  probe02MetricSelect.innerHTML = probe02.metrics
+    .map((metric) => `<option value="${escapeHtml(metric.id)}">${escapeHtml(metric.label)}</option>`)
+    .join("");
+  const renderProbe02Chart = () => {
+    const metric = probe02.metrics.find((item) => item.id === probe02MetricSelect.value) || probe02.metrics[0];
+    const bounds = { left: 54, right: 805, top: 26, bottom: 292 };
+    const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (probe02.layers.length - 1);
+    const series = [
+      { id: "train", label: "Outer-fold train mean" },
+      { id: "validation", label: "Out-of-fold development" },
+    ];
+    const baseline = Number(probe02.output_probability_baseline[metric.field]);
+    const displayedValues = [
+      ...series.flatMap((item) => probe02.layers.map((layer) => Number(layer[item.id][metric.field]))),
+      baseline,
+    ];
+    const rawMin = Math.min(...displayedValues);
+    const rawMax = Math.max(...displayedValues);
+    const rawRange = rawMax - rawMin;
+    const tickStep = rawRange > .6 ? .2 : rawRange > .3 ? .1 : .05;
+    let yMin = Math.max(0, Math.floor((rawMin - .02) / tickStep) * tickStep);
+    let yMax = Math.min(1, Math.ceil((rawMax + .02) / tickStep) * tickStep);
+    while (yMax - yMin < 4 * tickStep && (yMin > 0 || yMax < 1)) {
+      if (yMin > 0) yMin = Math.max(0, yMin - tickStep);
+      if (yMax < 1 && yMax - yMin < 4 * tickStep) yMax = Math.min(1, yMax + tickStep);
+    }
+    const yTicks = Array.from(
+      { length: Math.round((yMax - yMin) / tickStep) + 1 },
+      (_, index) => yMin + index * tickStep
+    );
+    const y = (value) => bounds.bottom
+      - ((Number(value) - yMin) / (yMax - yMin)) * (bounds.bottom - bounds.top);
+    const rangeLabel = `${Math.round(yMin * 100)}–${Math.round(yMax * 100)}%`;
+    document.getElementById("coarse-probe-02-chart-title").textContent = `${metric.label} by layer · Focused y-axis: ${rangeLabel}`;
+    document.getElementById("coarse-probe-02-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} by transformer layer">
+      ${yTicks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
+      ${probe02.layers.map((layer, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${layer.layer}</text>`).join("")}
+      ${series.map((item) => {
+        const points = probe02.layers.map((layer, index) => `${x(index)},${y(layer[item.id][metric.field])}`).join(" ");
+        return `<polyline class="probe-line ${item.id}" points="${points}"/>${probe02.layers.map((layer, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(layer[item.id][metric.field])}" r="3.5"><title>${item.label} · layer ${layer.layer}: ${pct(layer[item.id][metric.field])}</title></circle>`).join("")}`;
+      }).join("")}
+      <line class="probe-baseline validation" x1="${bounds.left}" y1="${y(baseline)}" x2="${bounds.right}" y2="${y(baseline)}"><title>Output-probability baseline: ${pct(baseline)}</title></line>
+      <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
+      <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
+    </svg>`;
+  };
+  probe02MetricSelect.addEventListener("change", renderProbe02Chart);
+  renderProbe02Chart();
+
   const factorData = data.factor_effects;
   const factorResearch = factorData.analysis;
   document.getElementById("factor-effects-summary").textContent = factorResearch.headline;
