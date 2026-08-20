@@ -152,6 +152,14 @@
       </tr>`;
     })
     .join("");
+  document.getElementById("coarse-probe-comparison-note").textContent = probe.comparison.note;
+  document.getElementById("coarse-probe-best-layer-heading").textContent = `Best observed probe · layer ${probe.comparison.best_layer}`;
+  document.getElementById("coarse-probe-comparison").innerHTML = probe.comparison.rows
+    .map((row) => {
+      const format = (value) => row.label === "AUROC" ? Number(value).toFixed(3) : pct(value);
+      return `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${format(row.baseline)}</td><td>${format(row.best_probe)}</td></tr>`;
+    })
+    .join("");
   document.getElementById("coarse-probe-training").textContent = probe.training;
   document.getElementById("coarse-probe-threshold").textContent = probe.threshold;
   document.getElementById("coarse-probe-limitations").textContent = probe.limitations;
@@ -168,11 +176,9 @@
       { id: "validation", label: "Validation" },
       { id: "test", label: "Test" },
     ];
-    const baseline = probe.output_probability_baseline.splits;
-    const displayedValues = series.flatMap((item) => [
-      ...probe.layers.map((layer) => Number(layer[item.id][metric.field])),
-      Number(baseline[item.id][metric.field]),
-    ]);
+    const displayedValues = series.flatMap((item) =>
+      probe.layers.map((layer) => Number(layer[item.id][metric.field]))
+    );
     const rawMin = Math.min(...displayedValues);
     const rawMax = Math.max(...displayedValues);
     const rawRange = rawMax - rawMin;
@@ -198,7 +204,6 @@
         const points = probe.layers.map((layer, index) => `${x(index)},${y(layer[item.id][metric.field])}`).join(" ");
         return `<polyline class="probe-line ${item.id}" points="${points}"/>${probe.layers.map((layer, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(layer[item.id][metric.field])}" r="3.5"><title>${item.label} · layer ${layer.layer}: ${pct(layer[item.id][metric.field])}</title></circle>`).join("")}`;
       }).join("")}
-      ${series.map((item) => `<line class="probe-baseline ${item.id}" x1="${bounds.left}" y1="${y(baseline[item.id][metric.field])}" x2="${bounds.right}" y2="${y(baseline[item.id][metric.field])}"><title>${item.label} output-probability baseline: ${pct(baseline[item.id][metric.field])}</title></line>`).join("")}
       <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
       <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
     </svg>`;
@@ -225,6 +230,14 @@
       <td>${row.eligible}</td>
     </tr>`)
     .join("");
+  document.getElementById("coarse-probe-02-comparison-note").textContent = probe02.comparison.note;
+  document.getElementById("coarse-probe-02-best-layer-heading").textContent = `Best observed probe · layer ${probe02.comparison.best_layer}`;
+  document.getElementById("coarse-probe-02-comparison").innerHTML = probe02.comparison.rows
+    .map((row) => {
+      const format = (value) => row.label === "AUROC" ? Number(value).toFixed(3) : pct(value);
+      return `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${format(row.baseline)}</td><td>${format(row.best_probe)}</td></tr>`;
+    })
+    .join("");
   const probe02MetricSelect = document.getElementById("coarse-probe-02-metric");
   probe02MetricSelect.innerHTML = probe02.metrics
     .map((metric) => `<option value="${escapeHtml(metric.id)}">${escapeHtml(metric.label)}</option>`)
@@ -237,11 +250,9 @@
       { id: "train", label: "Outer-fold train mean" },
       { id: "validation", label: "Out-of-fold development" },
     ];
-    const baseline = Number(probe02.output_probability_baseline[metric.field]);
-    const displayedValues = [
-      ...series.flatMap((item) => probe02.layers.map((layer) => Number(layer[item.id][metric.field]))),
-      baseline,
-    ];
+    const displayedValues = series.flatMap((item) =>
+      probe02.layers.map((layer) => Number(layer[item.id][metric.field]))
+    );
     const rawMin = Math.min(...displayedValues);
     const rawMax = Math.max(...displayedValues);
     const rawRange = rawMax - rawMin;
@@ -267,7 +278,6 @@
         const points = probe02.layers.map((layer, index) => `${x(index)},${y(layer[item.id][metric.field])}`).join(" ");
         return `<polyline class="probe-line ${item.id}" points="${points}"/>${probe02.layers.map((layer, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(layer[item.id][metric.field])}" r="3.5"><title>${item.label} · layer ${layer.layer}: ${pct(layer[item.id][metric.field])}</title></circle>`).join("")}`;
       }).join("")}
-      <line class="probe-baseline validation" x1="${bounds.left}" y1="${y(baseline)}" x2="${bounds.right}" y2="${y(baseline)}"><title>Output-probability baseline: ${pct(baseline)}</title></line>
       <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
       <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
     </svg>`;
