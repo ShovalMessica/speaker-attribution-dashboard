@@ -114,7 +114,9 @@
   document.getElementById("coarse-split-stratification").textContent = coarseProbing.split.stratification;
   document.getElementById("coarse-split-note").textContent = coarseProbing.split.note;
   const probe = coarseProbing.probe;
-  document.getElementById("coarse-probe-results-intro").textContent = probe.intro;
+  document.getElementById("coarse-probe-input").innerHTML = probe.input
+    .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
+    .join("");
   document.getElementById("coarse-probe-results-summary").textContent = probe.summary;
   document.getElementById("coarse-probe-accuracy-definition").textContent = probe.accuracy_definition;
   document.getElementById("coarse-probe-results-counts").innerHTML = probe.counts

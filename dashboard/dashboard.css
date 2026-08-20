@@ -186,6 +186,7 @@ h1 {
 .coarse-probing-excluded { color: var(--ink) !important; font-size: 13px; }
 .coarse-gate-heading { margin-top: 28px !important; }
 .coarse-gate-labels { grid-template-columns: 150px minmax(0, 1fr); margin-bottom: 12px; }
+.coarse-probe-input { grid-template-columns: 120px minmax(0, 1fr); margin-bottom: 18px; }
 .coarse-probe-summary { max-width: 820px; font-weight: 700; color: var(--ink) !important; }
 .coarse-probe-counts-heading { margin: 22px 0 4px; font-size: 15px; }
 .coarse-probe-counts-note { margin: 0 0 10px !important; color: var(--ink) !important; font-size: 13px; }
