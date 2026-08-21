@@ -204,14 +204,14 @@ h1 {
 .coarse-probe-chart-control select { padding: 6px 28px 6px 9px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); }
 .standardized-probe-report { color: #000; }
 .standardized-probe-report > h3 { margin-bottom: 8px; font-size: 22px; }
-.standardized-probe-legend { display: flex; gap: 22px; margin: 8px 0 24px; font-size: 13px; font-weight: 700; }
+.standardized-probe-legend { display: flex; gap: 22px; margin: 8px 0 24px; font-size: 16px; font-weight: 700; }
 .standardized-probe-legend span::before { display: inline-block; width: 20px; margin-right: 7px; border-top: 3px solid; content: ""; vertical-align: middle; }
 .standardized-probe-legend .synthetic-validation::before { border-color: #17705a; }
 .standardized-probe-legend .real-test::before { border-color: #356b9a; }
 .standardized-experiment-card { max-width: 940px; padding: 26px 0; border-top: 1px solid var(--line); }
 .standardized-experiment-card:first-child { border-top: 0; }
 .standardized-experiment-card h3 { margin: 0 0 14px; color: #000; font-size: 21px; }
-.standardized-experiment-card h4 { margin: 22px 0 8px; color: #000; font-size: 15px; }
+.standardized-experiment-card h4 { margin: 22px 0 8px; color: #000; font-size: 18px; }
 .standardized-experiment-definition { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 7px 14px; max-width: 860px; margin: 0; }
 .standardized-experiment-definition dt { font-weight: 700; }
 .standardized-experiment-definition dd { margin: 0; }
@@ -219,10 +219,15 @@ h1 {
 .standardized-data-table { min-width: 680px; }
 .standardized-outcome-table { min-width: 820px; }
 .standardized-method-note { max-width: 860px; margin: 14px 0 0 !important; }
+.standardized-experiment-card p,
+.standardized-experiment-card dt,
+.standardized-experiment-card dd,
+.standardized-experiment-card th,
+.standardized-experiment-card td { font-size: 16px; }
 .standardized-metric-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 1100px; }
 .standardized-metric-chart { margin: 0; padding: 14px; border: 1px solid var(--line); border-radius: 8px; }
 .standardized-metric-chart:last-child { grid-column: 1 / -1; max-width: 530px; }
-.standardized-metric-chart figcaption { margin-bottom: 4px; color: #000; font-size: 14px; font-weight: 700; }
+.standardized-metric-chart figcaption { margin-bottom: 4px; color: #000; font-size: 17px; font-weight: 700; }
 .standardized-metric-chart .coarse-probe-chart { margin-bottom: 0; }
 .probe-line.synthetic-validation { stroke: #17705a; }
 .probe-line.real-test { stroke: #356b9a; }
