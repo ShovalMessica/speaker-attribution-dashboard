@@ -121,9 +121,10 @@
     ? Number(value).toFixed(3)
     : pct(value);
   document.getElementById("standardized-probe-note").textContent = standardizedProbe.contract.note;
+  document.getElementById("standardized-probe-conclusion").textContent = standardizedProbe.conclusion;
   document.getElementById("standardized-probe-datasets").innerHTML = [
-    ["Synthetic validation", standardizedProbe.contract.synthetic_validation],
-    ["Real test", standardizedProbe.contract.real_test],
+    ["Initial Synthetic validation", standardizedProbe.contract.synthetic_validation],
+    ["Real data test", standardizedProbe.contract.real_test],
   ].map(([label, dataset]) => `<tr>
     <th scope="row">${escapeHtml(label)}</th>
     <td>${dataset.outcomes.correct}</td>
@@ -131,24 +132,34 @@
     <td>${dataset.outcomes.false_attribution}</td>
     <td>${dataset.examples}</td>
   </tr>`).join("");
+  document.getElementById("standardized-output-baseline").innerHTML = standardizedProbe.metrics
+    .map((metric) => `<tr>
+      <th scope="row">${escapeHtml(metric.label)}</th>
+      <td>${standardizedFormat(metric.id, standardizedProbe.output_probability_baseline.synthetic_validation[metric.id])}</td>
+      <td>${standardizedFormat(metric.id, standardizedProbe.output_probability_baseline.real_test[metric.id])}</td>
+    </tr>`)
+    .join("");
   const standardizedExperimentLayers = (experimentId) => standardizedProbe.layers.map((row) => ({
     layer: row.layer,
     synthetic_validation: row[experimentId].synthetic_validation,
     real_test: row[experimentId].real_test,
   }));
-  const standardizedBestRows = (experimentId) => standardizedProbe.metrics.map((metric) => {
-    const best = standardizedExperimentLayers(experimentId).reduce((current, candidate) =>
-      Number(candidate.synthetic_validation[metric.id]) > Number(current.synthetic_validation[metric.id])
+  const standardizedSelectedLayer = (experimentId) => standardizedExperimentLayers(experimentId)
+    .reduce((current, candidate) =>
+      Number(candidate.synthetic_validation.auroc) > Number(current.synthetic_validation.auroc)
         ? candidate
         : current
     );
+  const standardizedBestRows = (experimentId) => {
+    const best = standardizedSelectedLayer(experimentId);
+    return standardizedProbe.metrics.map((metric) => {
     return `<tr>
       <th scope="row">${escapeHtml(metric.label)}</th>
-      <td>${best.layer}</td>
       <td>${standardizedFormat(metric.id, best.synthetic_validation[metric.id])}</td>
       <td>${standardizedFormat(metric.id, best.real_test[metric.id])}</td>
     </tr>`;
-  }).join("");
+    }).join("");
+  };
   const standardizedDataRows = (experiment) => experiment.data_rows.map((row) => `<tr>
     <th scope="row">${escapeHtml(row.role)}</th>
     <td>${escapeHtml(row.data)}</td>
@@ -183,15 +194,19 @@
         </table>
       </div>
       <p class="standardized-method-note">${escapeHtml(experiment.method_note)}</p>
-      <h4>Best layer selected on Synthetic validation</h4>
+      <h4>Selected layer ${standardizedSelectedLayer(experiment.id).layer}</h4>
+      <p class="standardized-method-note">Selected by the highest AUROC on Initial Synthetic validation. Every metric below uses this same layer.</p>
       <div class="coarse-probe-counts-table-wrap">
         <table class="coarse-probe-counts-table standardized-best-table">
-          <thead><tr><th>Metric</th><th>Layer</th><th>Synthetic validation</th><th>Real test at the same layer</th></tr></thead>
+          <thead><tr><th>Metric</th><th>Initial Synthetic validation</th><th>Real data test</th></tr></thead>
           <tbody>${standardizedBestRows(experiment.id)}</tbody>
         </table>
       </div>
       <h4>Performance across transformer layers</h4>
-      <div class="standardized-metric-charts"></div>
+      <label class="standardized-metric-control">Metric
+        <select class="standardized-metric-select">${standardizedProbe.metrics.map((metric) => `<option value="${escapeHtml(metric.id)}">${escapeHtml(metric.label)}</option>`).join("")}</select>
+      </label>
+      <div class="standardized-metric-chart"></div>
     </article>`)
     .join("");
 
@@ -204,13 +219,14 @@
       const layerRows = standardizedExperimentLayers(experimentId);
       const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (layerRows.length - 1);
       const series = [
-        { id: "synthetic-validation", label: "Synthetic validation", field: "synthetic_validation" },
-        { id: "real-test", label: "Real test", field: "real_test" },
+        { id: "synthetic-validation", label: "Initial Synthetic validation", field: "synthetic_validation" },
+        { id: "real-test", label: "Real data test", field: "real_test" },
       ];
-      card.querySelector(".standardized-metric-charts").innerHTML = standardizedProbe.metrics.map((metric) => `
-        <figure class="standardized-metric-chart">
+      const renderMetric = (metricId) => {
+        const metric = standardizedProbe.metrics.find((item) => item.id === metricId) || standardizedProbe.metrics[0];
+        card.querySelector(".standardized-metric-chart").innerHTML = `
           <figcaption>${escapeHtml(metric.label)}</figcaption>
-          <div class="coarse-probe-chart"><svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} on Synthetic validation and Real test">
+          <div class="coarse-probe-chart"><svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} on Initial Synthetic validation and Real data test">
             ${yTicks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
             ${layerRows.map((row, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${row.layer}</text>`).join("")}
             ${series.map((item) => {
@@ -219,8 +235,11 @@
             }).join("")}
             <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
             <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
-          </svg></div>
-        </figure>`).join("");
+          </svg></div>`;
+      };
+      const selector = card.querySelector(".standardized-metric-select");
+      renderMetric(selector.value);
+      selector.addEventListener("change", () => renderMetric(selector.value));
     });
   };
   renderStandardizedProbeCharts();
