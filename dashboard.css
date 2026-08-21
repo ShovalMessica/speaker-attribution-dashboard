@@ -216,6 +216,11 @@ h1 {
 .standardized-experiment-definition dt { font-weight: 700; }
 .standardized-experiment-definition dd { margin: 0; }
 .standardized-best-table { min-width: 700px; }
+.standardized-metric-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 1100px; }
+.standardized-metric-chart { margin: 0; padding: 14px; border: 1px solid var(--line); border-radius: 8px; }
+.standardized-metric-chart:last-child { grid-column: 1 / -1; max-width: 530px; }
+.standardized-metric-chart figcaption { margin-bottom: 4px; color: #000; font-size: 14px; font-weight: 700; }
+.standardized-metric-chart .coarse-probe-chart { margin-bottom: 0; }
 .probe-line.synthetic-validation { stroke: #17705a; }
 .probe-line.real-test { stroke: #356b9a; }
 .probe-point.synthetic-validation { fill: #17705a; }
@@ -929,5 +934,7 @@ tbody tr:hover { background: #f8fafb; }
   .weekly-behavior-label span { display: block; }
   .coarse-probing-facts { grid-template-columns: 1fr; gap: 3px; }
   .coarse-probe-03-charts { grid-template-columns: 1fr; }
+  .standardized-metric-charts { grid-template-columns: 1fr; }
+  .standardized-metric-chart:last-child { grid-column: 1; max-width: none; }
   .coarse-probing-facts dd { margin-bottom: 8px; }
 }

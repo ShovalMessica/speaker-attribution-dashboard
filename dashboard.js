@@ -117,7 +117,6 @@
 
   const coarseProbing = data.coarse_grained_probing;
   const standardizedProbe = coarseProbing.standardized_comparison;
-  const standardizedMetricSelect = document.getElementById("standardized-probe-metric");
   const standardizedFormat = (metricId, value) => metricId === "auroc"
     ? Number(value).toFixed(3)
     : pct(value);
@@ -132,10 +131,6 @@
     <td>${dataset.outcomes.false_attribution}</td>
     <td>${dataset.examples}</td>
   </tr>`).join("");
-  standardizedMetricSelect.innerHTML = standardizedProbe.metrics
-    .map((metric) => `<option value="${escapeHtml(metric.id)}">${escapeHtml(metric.label)}</option>`)
-    .join("");
-
   const standardizedExperimentLayers = (experimentId) => standardizedProbe.layers.map((row) => ({
     layer: row.layer,
     synthetic_validation: row[experimentId].synthetic_validation,
@@ -170,14 +165,12 @@
           <tbody>${standardizedBestRows(experiment.id)}</tbody>
         </table>
       </div>
-      <h4 class="standardized-chart-title"></h4>
-      <div class="coarse-probe-chart standardized-layer-chart"></div>
+      <h4>Performance across transformer layers</h4>
+      <div class="standardized-metric-charts"></div>
     </article>`)
     .join("");
 
   const renderStandardizedProbeCharts = () => {
-    const metric = standardizedProbe.metrics.find((item) => item.id === standardizedMetricSelect.value)
-      || standardizedProbe.metrics[0];
     const bounds = { left: 54, right: 805, top: 26, bottom: 292 };
     const yTicks = [0, .2, .4, .6, .8, 1];
     const y = (value) => bounds.bottom - Number(value) * (bounds.bottom - bounds.top);
@@ -189,20 +182,22 @@
         { id: "synthetic-validation", label: "Synthetic validation", field: "synthetic_validation" },
         { id: "real-test", label: "Real test", field: "real_test" },
       ];
-      card.querySelector(".standardized-chart-title").textContent = `${metric.label} by transformer layer`;
-      card.querySelector(".standardized-layer-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} on Synthetic validation and Real test">
-        ${yTicks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
-        ${layerRows.map((row, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${row.layer}</text>`).join("")}
-        ${series.map((item) => {
-          const points = layerRows.map((row, index) => `${x(index)},${y(row[item.field][metric.id])}`).join(" ");
-          return `<polyline class="probe-line ${item.id}" points="${points}"/>${layerRows.map((row, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(row[item.field][metric.id])}" r="3.5"><title>${item.label} · layer ${row.layer}: ${standardizedFormat(metric.id, row[item.field][metric.id])}</title></circle>`).join("")}`;
-        }).join("")}
-        <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
-        <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
-      </svg>`;
+      card.querySelector(".standardized-metric-charts").innerHTML = standardizedProbe.metrics.map((metric) => `
+        <figure class="standardized-metric-chart">
+          <figcaption>${escapeHtml(metric.label)}</figcaption>
+          <div class="coarse-probe-chart"><svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} on Synthetic validation and Real test">
+            ${yTicks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
+            ${layerRows.map((row, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${row.layer}</text>`).join("")}
+            ${series.map((item) => {
+              const points = layerRows.map((row, index) => `${x(index)},${y(row[item.field][metric.id])}`).join(" ");
+              return `<polyline class="probe-line ${item.id}" points="${points}"/>${layerRows.map((row, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(row[item.field][metric.id])}" r="3.5"><title>${item.label} · layer ${row.layer}: ${standardizedFormat(metric.id, row[item.field][metric.id])}</title></circle>`).join("")}`;
+            }).join("")}
+            <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
+            <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
+          </svg></div>
+        </figure>`).join("");
     });
   };
-  standardizedMetricSelect.addEventListener("change", renderStandardizedProbeCharts);
   renderStandardizedProbeCharts();
 
   document.getElementById("coarse-probing-intro").textContent = coarseProbing.intro;
