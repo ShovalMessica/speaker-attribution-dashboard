@@ -132,13 +132,6 @@
     <td>${dataset.outcomes.false_attribution}</td>
     <td>${dataset.examples}</td>
   </tr>`).join("");
-  document.getElementById("standardized-output-baseline").innerHTML = standardizedProbe.metrics
-    .map((metric) => `<tr>
-      <th scope="row">${escapeHtml(metric.label)}</th>
-      <td>${standardizedFormat(metric.id, standardizedProbe.output_probability_baseline.synthetic_validation[metric.id])}</td>
-      <td>${standardizedFormat(metric.id, standardizedProbe.output_probability_baseline.real_test[metric.id])}</td>
-    </tr>`)
-    .join("");
   const standardizedExperimentLayers = (experimentId) => standardizedProbe.layers.map((row) => ({
     layer: row.layer,
     synthetic_validation: row[experimentId].synthetic_validation,
@@ -155,7 +148,9 @@
     return standardizedProbe.metrics.map((metric) => {
     return `<tr>
       <th scope="row">${escapeHtml(metric.label)}</th>
+      <td>${standardizedFormat(metric.id, standardizedProbe.output_probability_baseline.synthetic_validation[metric.id])}</td>
       <td>${standardizedFormat(metric.id, best.synthetic_validation[metric.id])}</td>
+      <td>${standardizedFormat(metric.id, standardizedProbe.output_probability_baseline.real_test[metric.id])}</td>
       <td>${standardizedFormat(metric.id, best.real_test[metric.id])}</td>
     </tr>`;
     }).join("");
@@ -179,14 +174,14 @@
       <dl class="standardized-experiment-definition">
         <dt>Change</dt><dd>${escapeHtml(experiment.change)}</dd>
       </dl>
-      <h4>Data used</h4>
+      <h4>Data and split</h4>
       <div class="coarse-probe-counts-table-wrap">
         <table class="coarse-probe-counts-table standardized-data-table">
           <thead><tr><th>Role</th><th>Dataset</th><th>Total</th></tr></thead>
           <tbody>${standardizedDataRows(experiment)}</tbody>
         </table>
       </div>
-      <h4>Outcome counts</h4>
+      <h4>Class counts</h4>
       <div class="coarse-probe-counts-table-wrap">
         <table class="coarse-probe-counts-table standardized-outcome-table">
           <thead><tr><th>Role</th><th>Correct attribution</th><th>Wrong attribution</th><th>False attribution</th><th>Total</th></tr></thead>
@@ -194,11 +189,11 @@
         </table>
       </div>
       <p class="standardized-method-note">${escapeHtml(experiment.method_note)}</p>
-      <h4>Selected layer ${standardizedSelectedLayer(experiment.id).layer}</h4>
-      <p class="standardized-method-note">Selected by the highest AUROC on Initial Synthetic validation. Every metric below uses this same layer.</p>
+      <h4>Selected layer result</h4>
+      <p class="standardized-method-note">Layer ${standardizedSelectedLayer(experiment.id).layer}, selected by Initial Synthetic validation AUROC. The same frozen layer and threshold are then evaluated on Real data.</p>
       <div class="coarse-probe-counts-table-wrap">
         <table class="coarse-probe-counts-table standardized-best-table">
-          <thead><tr><th>Metric</th><th>Initial Synthetic validation</th><th>Real data test</th></tr></thead>
+          <thead><tr><th>Metric</th><th>Synthetic baseline</th><th>Synthetic probe</th><th>Real baseline</th><th>Real probe</th></tr></thead>
           <tbody>${standardizedBestRows(experiment.id)}</tbody>
         </table>
       </div>
@@ -206,6 +201,10 @@
       <label class="standardized-metric-control">Metric
         <select class="standardized-metric-select">${standardizedProbe.metrics.map((metric) => `<option value="${escapeHtml(metric.id)}">${escapeHtml(metric.label)}</option>`).join("")}</select>
       </label>
+      <div class="standardized-probe-legend" aria-label="Evaluation datasets">
+        <span class="synthetic-validation">Initial Synthetic validation</span>
+        <span class="real-test">Real data test</span>
+      </div>
       <div class="standardized-metric-chart"></div>
     </article>`)
     .join("");

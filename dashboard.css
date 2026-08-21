@@ -202,8 +202,12 @@ h1 {
 .coarse-probe-chart-control { display: flex; gap: 10px; align-items: center; margin: 18px 0 8px; }
 .coarse-probe-chart-control label { font-size: 13px; font-weight: 700; }
 .coarse-probe-chart-control select { padding: 6px 28px 6px 9px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); }
-.standardized-probe-report { color: #000; }
+.standardized-probe-report { color: #000; font-size: 16px; }
 .standardized-probe-report > h3 { margin-bottom: 8px; font-size: 22px; }
+.standardized-probe-report > h4 { margin: 22px 0 8px; color: #000; font-size: 18px; }
+.standardized-probe-report p,
+.standardized-probe-report th,
+.standardized-probe-report td { color: #000; font-size: 16px; }
 .standardized-probe-legend { display: flex; gap: 22px; margin: 8px 0 24px; font-size: 16px; font-weight: 700; }
 .standardized-probe-legend span::before { display: inline-block; width: 20px; margin-right: 7px; border-top: 3px solid; content: ""; vertical-align: middle; }
 .standardized-probe-legend .synthetic-validation::before { border-color: #17705a; }
@@ -215,7 +219,7 @@ h1 {
 .standardized-experiment-definition { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 7px 14px; max-width: 860px; margin: 0; }
 .standardized-experiment-definition dt { font-weight: 700; }
 .standardized-experiment-definition dd { margin: 0; }
-.standardized-best-table { min-width: 700px; }
+.standardized-best-table { min-width: 900px; }
 .standardized-data-table { min-width: 680px; }
 .standardized-outcome-table { min-width: 820px; }
 .standardized-method-note { max-width: 860px; margin: 14px 0 0 !important; }
