@@ -216,6 +216,9 @@ h1 {
 .standardized-experiment-definition dt { font-weight: 700; }
 .standardized-experiment-definition dd { margin: 0; }
 .standardized-best-table { min-width: 700px; }
+.standardized-data-table { min-width: 680px; }
+.standardized-outcome-table { min-width: 820px; }
+.standardized-method-note { max-width: 860px; margin: 14px 0 0 !important; }
 .standardized-metric-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 1100px; }
 .standardized-metric-chart { margin: 0; padding: 14px; border: 1px solid var(--line); border-radius: 8px; }
 .standardized-metric-chart:last-child { grid-column: 1 / -1; max-width: 530px; }
@@ -897,6 +900,14 @@ tbody tr:hover { background: #f8fafb; }
 .weekly-pair-example p { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 10px; }
 .weekly-selected-setups { margin: 10px 0 0 !important; color: var(--ink); font-size: 11px; }
 .weekly-pair-validation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 24px; margin: 11px 0 0; padding-left: 18px; color: var(--ink); font-size: 10px; }
+
+#coarse-grained-probing p,
+#coarse-grained-probing li,
+#coarse-grained-probing dt,
+#coarse-grained-probing dd,
+#coarse-grained-probing table {
+  font-size: 15px;
+}
 
 @media (max-width: 700px) {
   main { width: min(100% - 20px, 1180px); margin-top: 24px; }

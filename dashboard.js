@@ -149,15 +149,40 @@
       <td>${standardizedFormat(metric.id, best.real_test[metric.id])}</td>
     </tr>`;
   }).join("");
+  const standardizedDataRows = (experiment) => experiment.data_rows.map((row) => `<tr>
+    <th scope="row">${escapeHtml(row.role)}</th>
+    <td>${escapeHtml(row.data)}</td>
+    <td>${row.total}</td>
+  </tr>`).join("");
+  const standardizedOutcomeRows = (experiment) => experiment.outcome_rows.map((row) => `<tr>
+    <th scope="row">${escapeHtml(row.role)}</th>
+    <td>${row.correct}</td>
+    <td>${row.wrong}</td>
+    <td>${row.false_attribution}</td>
+    <td>${row.total}</td>
+  </tr>`).join("");
 
   document.getElementById("standardized-experiment-reports").innerHTML = standardizedProbe.experiments
     .map((experiment) => `<article class="standardized-experiment-card" data-experiment-id="${escapeHtml(experiment.id)}">
       <h3>${escapeHtml(experiment.title)}</h3>
       <dl class="standardized-experiment-definition">
         <dt>Change</dt><dd>${escapeHtml(experiment.change)}</dd>
-        <dt>Training</dt><dd>${escapeHtml(experiment.training)}</dd>
-        <dt>Evaluation</dt><dd>${escapeHtml(experiment.evaluation)}</dd>
       </dl>
+      <h4>Data used</h4>
+      <div class="coarse-probe-counts-table-wrap">
+        <table class="coarse-probe-counts-table standardized-data-table">
+          <thead><tr><th>Role</th><th>Dataset</th><th>Total</th></tr></thead>
+          <tbody>${standardizedDataRows(experiment)}</tbody>
+        </table>
+      </div>
+      <h4>Outcome counts</h4>
+      <div class="coarse-probe-counts-table-wrap">
+        <table class="coarse-probe-counts-table standardized-outcome-table">
+          <thead><tr><th>Role</th><th>Correct attribution</th><th>Wrong attribution</th><th>False attribution</th><th>Total</th></tr></thead>
+          <tbody>${standardizedOutcomeRows(experiment)}</tbody>
+        </table>
+      </div>
+      <p class="standardized-method-note">${escapeHtml(experiment.method_note)}</p>
       <h4>Best layer selected on Synthetic validation</h4>
       <div class="coarse-probe-counts-table-wrap">
         <table class="coarse-probe-counts-table standardized-best-table">
