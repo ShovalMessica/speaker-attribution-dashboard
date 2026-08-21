@@ -116,6 +116,95 @@
   );
 
   const coarseProbing = data.coarse_grained_probing;
+  const standardizedProbe = coarseProbing.standardized_comparison;
+  const standardizedMetricSelect = document.getElementById("standardized-probe-metric");
+  const standardizedFormat = (metricId, value) => metricId === "auroc"
+    ? Number(value).toFixed(3)
+    : pct(value);
+  document.getElementById("standardized-probe-note").textContent = standardizedProbe.contract.note;
+  document.getElementById("standardized-probe-datasets").innerHTML = [
+    ["Synthetic validation", standardizedProbe.contract.synthetic_validation],
+    ["Real test", standardizedProbe.contract.real_test],
+  ].map(([label, dataset]) => `<tr>
+    <th scope="row">${escapeHtml(label)}</th>
+    <td>${dataset.outcomes.correct}</td>
+    <td>${dataset.outcomes.wrong}</td>
+    <td>${dataset.outcomes.false_attribution}</td>
+    <td>${dataset.examples}</td>
+  </tr>`).join("");
+  standardizedMetricSelect.innerHTML = standardizedProbe.metrics
+    .map((metric) => `<option value="${escapeHtml(metric.id)}">${escapeHtml(metric.label)}</option>`)
+    .join("");
+
+  const standardizedExperimentLayers = (experimentId) => standardizedProbe.layers.map((row) => ({
+    layer: row.layer,
+    synthetic_validation: row[experimentId].synthetic_validation,
+    real_test: row[experimentId].real_test,
+  }));
+  const standardizedBestRows = (experimentId) => standardizedProbe.metrics.map((metric) => {
+    const best = standardizedExperimentLayers(experimentId).reduce((current, candidate) =>
+      Number(candidate.synthetic_validation[metric.id]) > Number(current.synthetic_validation[metric.id])
+        ? candidate
+        : current
+    );
+    return `<tr>
+      <th scope="row">${escapeHtml(metric.label)}</th>
+      <td>${best.layer}</td>
+      <td>${standardizedFormat(metric.id, best.synthetic_validation[metric.id])}</td>
+      <td>${standardizedFormat(metric.id, best.real_test[metric.id])}</td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("standardized-experiment-reports").innerHTML = standardizedProbe.experiments
+    .map((experiment) => `<article class="standardized-experiment-card" data-experiment-id="${escapeHtml(experiment.id)}">
+      <h3>${escapeHtml(experiment.title)}</h3>
+      <dl class="standardized-experiment-definition">
+        <dt>Change</dt><dd>${escapeHtml(experiment.change)}</dd>
+        <dt>Training</dt><dd>${escapeHtml(experiment.training)}</dd>
+        <dt>Evaluation</dt><dd>${escapeHtml(experiment.evaluation)}</dd>
+      </dl>
+      <h4>Best layer selected on Synthetic validation</h4>
+      <div class="coarse-probe-counts-table-wrap">
+        <table class="coarse-probe-counts-table standardized-best-table">
+          <thead><tr><th>Metric</th><th>Layer</th><th>Synthetic validation</th><th>Real test at the same layer</th></tr></thead>
+          <tbody>${standardizedBestRows(experiment.id)}</tbody>
+        </table>
+      </div>
+      <h4 class="standardized-chart-title"></h4>
+      <div class="coarse-probe-chart standardized-layer-chart"></div>
+    </article>`)
+    .join("");
+
+  const renderStandardizedProbeCharts = () => {
+    const metric = standardizedProbe.metrics.find((item) => item.id === standardizedMetricSelect.value)
+      || standardizedProbe.metrics[0];
+    const bounds = { left: 54, right: 805, top: 26, bottom: 292 };
+    const yTicks = [0, .2, .4, .6, .8, 1];
+    const y = (value) => bounds.bottom - Number(value) * (bounds.bottom - bounds.top);
+    document.querySelectorAll(".standardized-experiment-card").forEach((card) => {
+      const experimentId = card.dataset.experimentId;
+      const layerRows = standardizedExperimentLayers(experimentId);
+      const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (layerRows.length - 1);
+      const series = [
+        { id: "synthetic-validation", label: "Synthetic validation", field: "synthetic_validation" },
+        { id: "real-test", label: "Real test", field: "real_test" },
+      ];
+      card.querySelector(".standardized-chart-title").textContent = `${metric.label} by transformer layer`;
+      card.querySelector(".standardized-layer-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} on Synthetic validation and Real test">
+        ${yTicks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
+        ${layerRows.map((row, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${row.layer}</text>`).join("")}
+        ${series.map((item) => {
+          const points = layerRows.map((row, index) => `${x(index)},${y(row[item.field][metric.id])}`).join(" ");
+          return `<polyline class="probe-line ${item.id}" points="${points}"/>${layerRows.map((row, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(row[item.field][metric.id])}" r="3.5"><title>${item.label} · layer ${row.layer}: ${standardizedFormat(metric.id, row[item.field][metric.id])}</title></circle>`).join("")}`;
+        }).join("")}
+        <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
+        <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
+      </svg>`;
+    });
+  };
+  standardizedMetricSelect.addEventListener("change", renderStandardizedProbeCharts);
+  renderStandardizedProbeCharts();
+
   document.getElementById("coarse-probing-intro").textContent = coarseProbing.intro;
   document.getElementById("coarse-probing-facts").innerHTML = coarseProbing.facts
     .map((fact) => `<dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd>`).join("");
