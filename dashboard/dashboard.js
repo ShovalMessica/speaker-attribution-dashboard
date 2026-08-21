@@ -116,6 +116,133 @@
   );
 
   const coarseProbing = data.coarse_grained_probing;
+  const standardizedProbe = coarseProbing.standardized_comparison;
+  const standardizedFormat = (metricId, value) => metricId === "auroc"
+    ? Number(value).toFixed(3)
+    : pct(value);
+  document.getElementById("standardized-probe-note").textContent = standardizedProbe.contract.note;
+  document.getElementById("standardized-probe-conclusion").textContent = standardizedProbe.conclusion;
+  document.getElementById("standardized-probe-datasets").innerHTML = [
+    ["Initial Synthetic validation", standardizedProbe.contract.synthetic_validation],
+    ["Real data test", standardizedProbe.contract.real_test],
+  ].map(([label, dataset]) => `<tr>
+    <th scope="row">${escapeHtml(label)}</th>
+    <td>${dataset.outcomes.correct}</td>
+    <td>${dataset.outcomes.wrong}</td>
+    <td>${dataset.outcomes.false_attribution}</td>
+    <td>${dataset.examples}</td>
+  </tr>`).join("");
+  const standardizedExperimentLayers = (experimentId) => standardizedProbe.layers.map((row) => ({
+    layer: row.layer,
+    synthetic_validation: row[experimentId].synthetic_validation,
+    real_test: row[experimentId].real_test,
+  }));
+  const standardizedSelectedLayer = (experimentId) => standardizedExperimentLayers(experimentId)
+    .reduce((current, candidate) =>
+      Number(candidate.synthetic_validation.auroc) > Number(current.synthetic_validation.auroc)
+        ? candidate
+        : current
+    );
+  const standardizedBestRows = (experimentId) => {
+    const best = standardizedSelectedLayer(experimentId);
+    return standardizedProbe.metrics.map((metric) => {
+    return `<tr>
+      <th scope="row">${escapeHtml(metric.label)}</th>
+      <td>${standardizedFormat(metric.id, standardizedProbe.output_probability_baseline.synthetic_validation[metric.id])}</td>
+      <td>${standardizedFormat(metric.id, best.synthetic_validation[metric.id])}</td>
+      <td>${standardizedFormat(metric.id, standardizedProbe.output_probability_baseline.real_test[metric.id])}</td>
+      <td>${standardizedFormat(metric.id, best.real_test[metric.id])}</td>
+    </tr>`;
+    }).join("");
+  };
+  const standardizedDataRows = (experiment) => experiment.data_rows.map((row) => `<tr>
+    <th scope="row">${escapeHtml(row.role)}</th>
+    <td>${escapeHtml(row.data)}</td>
+    <td>${row.total}</td>
+  </tr>`).join("");
+  const standardizedOutcomeRows = (experiment) => experiment.outcome_rows.map((row) => `<tr>
+    <th scope="row">${escapeHtml(row.role)}</th>
+    <td>${row.correct}</td>
+    <td>${row.wrong}</td>
+    <td>${row.false_attribution}</td>
+    <td>${row.total}</td>
+  </tr>`).join("");
+
+  document.getElementById("standardized-experiment-reports").innerHTML = standardizedProbe.experiments
+    .map((experiment) => `<article class="standardized-experiment-card" data-experiment-id="${escapeHtml(experiment.id)}">
+      <h3>${escapeHtml(experiment.title)}</h3>
+      <dl class="standardized-experiment-definition">
+        <dt>Change</dt><dd>${escapeHtml(experiment.change)}</dd>
+      </dl>
+      <h4>Data and split</h4>
+      <div class="coarse-probe-counts-table-wrap">
+        <table class="coarse-probe-counts-table standardized-data-table">
+          <thead><tr><th>Role</th><th>Dataset</th><th>Total</th></tr></thead>
+          <tbody>${standardizedDataRows(experiment)}</tbody>
+        </table>
+      </div>
+      <h4>Class counts</h4>
+      <div class="coarse-probe-counts-table-wrap">
+        <table class="coarse-probe-counts-table standardized-outcome-table">
+          <thead><tr><th>Role</th><th>Correct attribution</th><th>Wrong attribution</th><th>False attribution</th><th>Total</th></tr></thead>
+          <tbody>${standardizedOutcomeRows(experiment)}</tbody>
+        </table>
+      </div>
+      <p class="standardized-method-note">${escapeHtml(experiment.method_note)}</p>
+      <h4>Selected layer result</h4>
+      <p class="standardized-method-note">Layer ${standardizedSelectedLayer(experiment.id).layer}, selected by Initial Synthetic validation AUROC. The same frozen layer and threshold are then evaluated on Real data.</p>
+      <div class="coarse-probe-counts-table-wrap">
+        <table class="coarse-probe-counts-table standardized-best-table">
+          <thead><tr><th>Metric</th><th>Synthetic baseline</th><th>Synthetic probe</th><th>Real baseline</th><th>Real probe</th></tr></thead>
+          <tbody>${standardizedBestRows(experiment.id)}</tbody>
+        </table>
+      </div>
+      <h4>Performance across transformer layers</h4>
+      <label class="standardized-metric-control">Metric
+        <select class="standardized-metric-select">${standardizedProbe.metrics.map((metric) => `<option value="${escapeHtml(metric.id)}">${escapeHtml(metric.label)}</option>`).join("")}</select>
+      </label>
+      <div class="standardized-probe-legend" aria-label="Evaluation datasets">
+        <span class="synthetic-validation">Initial Synthetic validation</span>
+        <span class="real-test">Real data test</span>
+      </div>
+      <div class="standardized-metric-chart"></div>
+    </article>`)
+    .join("");
+
+  const renderStandardizedProbeCharts = () => {
+    const bounds = { left: 54, right: 805, top: 26, bottom: 292 };
+    const yTicks = [0, .2, .4, .6, .8, 1];
+    const y = (value) => bounds.bottom - Number(value) * (bounds.bottom - bounds.top);
+    document.querySelectorAll(".standardized-experiment-card").forEach((card) => {
+      const experimentId = card.dataset.experimentId;
+      const layerRows = standardizedExperimentLayers(experimentId);
+      const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (layerRows.length - 1);
+      const series = [
+        { id: "synthetic-validation", label: "Initial Synthetic validation", field: "synthetic_validation" },
+        { id: "real-test", label: "Real data test", field: "real_test" },
+      ];
+      const renderMetric = (metricId) => {
+        const metric = standardizedProbe.metrics.find((item) => item.id === metricId) || standardizedProbe.metrics[0];
+        card.querySelector(".standardized-metric-chart").innerHTML = `
+          <figcaption>${escapeHtml(metric.label)}</figcaption>
+          <div class="coarse-probe-chart"><svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} on Initial Synthetic validation and Real data test">
+            ${yTicks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
+            ${layerRows.map((row, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${row.layer}</text>`).join("")}
+            ${series.map((item) => {
+              const points = layerRows.map((row, index) => `${x(index)},${y(row[item.field][metric.id])}`).join(" ");
+              return `<polyline class="probe-line ${item.id}" points="${points}"/>${layerRows.map((row, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(row[item.field][metric.id])}" r="3.5"><title>${item.label} · layer ${row.layer}: ${standardizedFormat(metric.id, row[item.field][metric.id])}</title></circle>`).join("")}`;
+            }).join("")}
+            <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
+            <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
+          </svg></div>`;
+      };
+      const selector = card.querySelector(".standardized-metric-select");
+      renderMetric(selector.value);
+      selector.addEventListener("change", () => renderMetric(selector.value));
+    });
+  };
+  renderStandardizedProbeCharts();
+
   document.getElementById("coarse-probing-intro").textContent = coarseProbing.intro;
   document.getElementById("coarse-probing-facts").innerHTML = coarseProbing.facts
     .map((fact) => `<dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd>`).join("");
@@ -215,6 +342,10 @@
   document.getElementById("coarse-probe-02-input").innerHTML = probe02.input
     .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
     .join("");
+  document.getElementById("coarse-probe-02-data-usage-note").textContent = probe02.data_usage.note;
+  document.getElementById("coarse-probe-02-data-usage").innerHTML = probe02.data_usage.rows
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.stage)}</th><td>${escapeHtml(row.data)}</td><td>${escapeHtml(row.examples)}</td><td>${escapeHtml(row.use)}</td></tr>`)
+    .join("");
   document.getElementById("coarse-probe-02-summary").textContent = probe02.summary;
   document.getElementById("coarse-probe-02-accuracy-definition").textContent = probe02.accuracy_definition;
   document.getElementById("coarse-probe-02-chart-description").textContent = probe02.chart_description;
@@ -284,6 +415,83 @@
   };
   probe02MetricSelect.addEventListener("change", renderProbe02Chart);
   renderProbe02Chart();
+
+  const probe03 = coarseProbing.probe_experiment_03;
+  document.getElementById("coarse-probe-03-input").innerHTML = probe03.input
+    .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
+    .join("");
+  document.getElementById("coarse-probe-03-data-usage-note").textContent = probe03.data_usage.note;
+  document.getElementById("coarse-probe-03-data-usage").innerHTML = probe03.data_usage.rows
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.stage)}</th><td>${escapeHtml(row.data)}</td><td>${escapeHtml(row.examples)}</td><td>${escapeHtml(row.use)}</td></tr>`)
+    .join("");
+  document.getElementById("coarse-probe-03-counts").innerHTML = probe03.counts
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.source)}</th><td>${row.correct}</td><td>${row.wrong}</td><td>${row.false_attribution}</td><td>${row.eligible}</td></tr>`)
+    .join("");
+  document.getElementById("coarse-probe-03-folds").innerHTML = probe03.folds
+    .map((row) => `<tr><th scope="row">${row.fold}</th><td>${row.train.correct} / ${row.train.wrong} / ${row.train.false_attribution} / ${row.train.total}</td><td>${row.validation.correct} / ${row.validation.wrong} / ${row.validation.false_attribution} / ${row.validation.total}</td></tr>`)
+    .join("");
+  document.getElementById("coarse-probe-03-comparison").innerHTML = probe03.comparison
+    .map((row) => {
+      const format = (value) => row.metric === "AUROC" ? Number(value).toFixed(3) : pct(value);
+      const delta = row.metric === "AUROC"
+        ? `${row.delta >= 0 ? "+" : ""}${Number(row.delta).toFixed(3)}`
+        : `${row.delta >= 0 ? "+" : ""}${(100 * Number(row.delta)).toFixed(1)} pp`;
+      return `<tr><th scope="row">${escapeHtml(row.evaluation)}</th><td>${escapeHtml(row.metric)}</td><td>${format(row.experiment_02)}</td><td>${format(row.experiment_03)}</td><td>${delta}</td></tr>`;
+    })
+    .join("");
+  const probe03MetricSelect = document.getElementById("coarse-probe-03-metric");
+  const probe03MetricLabels = {
+    accuracy: "Gate accuracy",
+    auroc: "AUROC",
+    correct_attribution_acceptance_tpr: "Correct-attribution acceptance",
+    wrong_attribution_rejection: "Wrong-attribution rejection",
+    false_attribution_rejection: "False-attribution rejection",
+  };
+  const renderProbe03LayerChart = () => {
+    const field = probe03MetricSelect.value;
+    const label = probe03MetricLabels[field];
+    const bounds = { left: 54, right: 805, top: 26, bottom: 292 };
+    const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (probe03.layers.length - 1);
+    const series = [
+      { id: "experiment-02", label: "Experiment 02 · Synthetic OOF", field: "experiment_02_synthetic" },
+      { id: "experiment-03", label: "Experiment 03 · Synthetic OOF", field: "experiment_03_synthetic" },
+      { id: "experiment-03-real", label: "Experiment 03 · Real data", field: "experiment_03_real" },
+    ];
+    const values = series.flatMap((item) => probe03.layers.map((layer) => Number(layer[item.field][field])));
+    const step = .1;
+    const yMin = Math.max(0, Math.floor((Math.min(...values) - .04) / step) * step);
+    const yMax = Math.min(1, Math.ceil((Math.max(...values) + .04) / step) * step);
+    const y = (value) => bounds.bottom - ((Number(value) - yMin) / (yMax - yMin)) * (bounds.bottom - bounds.top);
+    const ticks = Array.from({ length: Math.round((yMax - yMin) / step) + 1 }, (_, index) => yMin + index * step);
+    document.getElementById("coarse-probe-03-layer-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(label)} across transformer layers">
+      ${ticks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
+      ${probe03.layers.map((layer, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${layer.layer}</text>`).join("")}
+      ${series.map((item) => {
+        const points = probe03.layers.map((layer, index) => `${x(index)},${y(layer[item.field][field])}`).join(" ");
+        return `<polyline class="probe-line ${item.id}" points="${points}"/>${probe03.layers.map((layer, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(layer[item.field][field])}" r="3.5"><title>${item.label} · layer ${layer.layer}: ${pct(layer[item.field][field])}</title></circle>`).join("")}`;
+      }).join("")}
+      <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
+      <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(label)}</text>
+    </svg>`;
+  };
+  probe03MetricSelect.addEventListener("change", renderProbe03LayerChart);
+  renderProbe03LayerChart();
+  document.getElementById("coarse-probe-03-summary").textContent = probe03.summary;
+  document.getElementById("coarse-probe-03-conclusion").textContent = probe03.conclusion;
+
+  const realTransfer = coarseProbing.real_transfer;
+  document.getElementById("coarse-probe-real-input").innerHTML = realTransfer.input
+    .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
+    .join("");
+  document.getElementById("coarse-probe-real-note").textContent = realTransfer.note;
+  document.getElementById("coarse-probe-real-results").innerHTML = realTransfer.rows
+    .map((row) => {
+      const format = (value) => row.label === "AUROC" ? Number(value).toFixed(3) : pct(value);
+      const interval = `${format(row.gate_interval.lower_95pct)}–${format(row.gate_interval.upper_95pct)}`;
+      return `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${format(row.baseline)}</td><td>${format(row.gate)}</td><td>${interval}</td></tr>`;
+    })
+    .join("");
+  document.getElementById("coarse-probe-real-conclusion").textContent = realTransfer.conclusion;
 
   const factorData = data.factor_effects;
   const factorResearch = factorData.analysis;
