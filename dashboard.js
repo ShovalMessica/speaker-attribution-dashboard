@@ -132,11 +132,23 @@
     <td>${dataset.outcomes.false_attribution}</td>
     <td>${dataset.examples}</td>
   </tr>`).join("");
-  const standardizedExperimentLayers = (experimentId) => standardizedProbe.layers.map((row) => ({
-    layer: row.layer,
-    synthetic_validation: row[experimentId].synthetic_validation,
-    real_test: row[experimentId].real_test,
-  }));
+  const standardizedExperimentDefinition = (experimentId) => standardizedProbe.experiments
+    .find((experiment) => experiment.id === experimentId);
+  const standardizedExperimentLayers = (experimentId) => {
+    const experiment = standardizedExperimentDefinition(experimentId);
+    if (experiment?.fixed_metrics) {
+      return [{
+        layer: experiment.representation_label,
+        synthetic_validation: experiment.fixed_metrics.synthetic_validation,
+        real_test: experiment.fixed_metrics.real_test,
+      }];
+    }
+    return standardizedProbe.layers.map((row) => ({
+      layer: row.layer,
+      synthetic_validation: row[experimentId].synthetic_validation,
+      real_test: row[experimentId].real_test,
+    }));
+  };
   const standardizedSelectedLayer = (experimentId) => standardizedExperimentLayers(experimentId)
     .reduce((current, candidate) =>
       Number(candidate.synthetic_validation.auroc) > Number(current.synthetic_validation.auroc)
@@ -189,15 +201,15 @@
         </table>
       </div>
       <p class="standardized-method-note">${escapeHtml(experiment.method_note)}</p>
-      <h4>Selected layer result</h4>
-      <p class="standardized-method-note">Layer ${standardizedSelectedLayer(experiment.id).layer}, selected by Initial Synthetic validation AUROC. The same frozen layer and threshold are then evaluated on Real data.</p>
+      <h4>Selected representation result</h4>
+      <p class="standardized-method-note">${escapeHtml(experiment.selection_note || `Layer ${standardizedSelectedLayer(experiment.id).layer}, selected by Initial Synthetic validation AUROC. The same frozen layer and threshold are then evaluated on Real data.`)}</p>
       <div class="coarse-probe-counts-table-wrap">
         <table class="coarse-probe-counts-table standardized-best-table">
           <thead><tr><th>Metric</th><th>Synthetic baseline</th><th>Synthetic probe</th><th>Real baseline</th><th>Real probe</th></tr></thead>
           <tbody>${standardizedBestRows(experiment.id)}</tbody>
         </table>
       </div>
-      <h4>Performance across transformer layers</h4>
+      <h4>${experiment.fixed_metrics ? "Performance of the selected representation" : "Performance across transformer layers"}</h4>
       <label class="standardized-metric-control">Metric
         <select class="standardized-metric-select">${standardizedProbe.metrics.map((metric) => `<option value="${escapeHtml(metric.id)}">${escapeHtml(metric.label)}</option>`).join("")}</select>
       </label>
@@ -216,7 +228,9 @@
     document.querySelectorAll(".standardized-experiment-card").forEach((card) => {
       const experimentId = card.dataset.experimentId;
       const layerRows = standardizedExperimentLayers(experimentId);
-      const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (layerRows.length - 1);
+      const x = (index) => layerRows.length === 1
+        ? (bounds.left + bounds.right) / 2
+        : bounds.left + index * (bounds.right - bounds.left) / (layerRows.length - 1);
       const series = [
         { id: "synthetic-validation", label: "Initial Synthetic validation", field: "synthetic_validation" },
         { id: "real-test", label: "Real data test", field: "real_test" },
@@ -232,7 +246,7 @@
               const points = layerRows.map((row, index) => `${x(index)},${y(row[item.field][metric.id])}`).join(" ");
               return `<polyline class="probe-line ${item.id}" points="${points}"/>${layerRows.map((row, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(row[item.field][metric.id])}" r="3.5"><title>${item.label} · layer ${row.layer}: ${standardizedFormat(metric.id, row[item.field][metric.id])}</title></circle>`).join("")}`;
             }).join("")}
-            <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
+            <text class="probe-axis-title" x="430" y="344" text-anchor="middle">${layerRows.length === 1 ? "Selected representation" : "Transformer layer"}</text>
             <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
           </svg></div>`;
       };
