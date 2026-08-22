@@ -353,12 +353,15 @@
   }
   if (semanticStudy.real_transfer) {
     const primaryLayer = Number(semanticSelection.selected.primary_layer);
-    const primary = semanticStudy.real_transfer.metrics.layers
-      .find((item) => Number(item.layer) === primaryLayer);
-    if (primary) semanticSelectedRows.push({
-      label: `Real data transfer · frozen layer ${primaryLayer}`,
-      n: semanticStudy.real_transfer.examples.eligible,
-      metrics: primary.metrics,
+    semanticStudy.real_transfer.metrics.layers.forEach((item) => {
+      const layer = Number(item.layer);
+      semanticSelectedRows.push({
+        label: layer === primaryLayer
+          ? `Real data transfer · frozen primary layer ${layer}`
+          : `Real data transfer · predeclared robustness layer ${layer}`,
+        n: semanticStudy.real_transfer.examples.eligible,
+        metrics: item.metrics,
+      });
     });
   } else {
     semanticSelectedRows.push({ label: "Real data transfer · frozen layer 27", n: "In progress", metrics: null });
