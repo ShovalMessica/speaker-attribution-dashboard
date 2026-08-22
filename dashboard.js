@@ -316,6 +316,12 @@
   document.getElementById("corrected-position-scope").textContent = corrected.position_study.scope;
   const positionLabels = {
     prompt_end: "End of prompt",
+    evidence_span_last: "Attribution-evidence span · last token",
+    evidence_span_mean: "Attribution-evidence span · mean",
+    evidence_span_max: "Attribution-evidence span · max",
+    target_response_last: "Target-response span · last token",
+    target_response_mean: "Target-response span · mean",
+    target_response_max: "Target-response span · max",
     reasoning_25pct: "Reasoning 25%",
     reasoning_50pct: "Reasoning 50%",
     reasoning_75pct: "Reasoning 75%",
