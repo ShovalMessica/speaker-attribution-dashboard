@@ -589,6 +589,7 @@
   document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
   document.getElementById("fixed-1242-activation-coverage").textContent = fixedReference.activation_coverage;
   document.getElementById("fixed-1242-reference-protocol").textContent = fixedReference.protocol;
+  document.getElementById("fixed-1242-corrected-reselection").textContent = fixedReference.corrected_reselection;
   const fixedPositionLabels = {
     prompt_end: "End of prompt",
     reasoning_last: "Last reasoning token",
