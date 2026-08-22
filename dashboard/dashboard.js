@@ -310,12 +310,149 @@
     <td>${pct(anchor.false_attribution_rejection)}</td>
   </tr>`;
   document.getElementById("corrected-anchor-pca").textContent = corrected.anchor.pca_conclusion;
+  const semanticStudy = corrected.semantic_reasoning_study;
+  document.getElementById("semantic-reasoning-status").textContent = semanticStudy.status;
+  document.getElementById("semantic-reasoning-headline").textContent = semanticStudy.headline;
+  document.getElementById("semantic-reasoning-rules").innerHTML = semanticStudy.rules
+    .map((rule) => `<li>${escapeHtml(rule)}</li>`).join("");
+  document.getElementById("semantic-reasoning-anchors").innerHTML = semanticStudy.anchors
+    .map((row) => `<tr>
+      <th scope="row"><span title="${escapeHtml(row.hypothesis)}">${escapeHtml(row.anchor)}</span></th>
+      <td>${escapeHtml(row.role)}</td><td>${row.correct}</td><td>${row.wrong}</td>
+      <td>${row.false_attribution}</td><td>${row.n}</td>
+    </tr>`).join("");
+  const semanticSelection = semanticStudy.selection;
+  document.getElementById("semantic-reasoning-selection").textContent = semanticSelection
+    ? `${semanticSelection.selected.description} Primary layer ${semanticSelection.selected.primary_layer}; layers ${semanticSelection.selected.predeclared_neighbor_layers.join(" and ")} are frozen robustness checks only.`
+    : "Selection record is not available.";
+  const semanticMetric = (metrics, field, percent = false) => {
+    if (!metrics || metrics[field] === undefined) return "—";
+    return percent ? pct(metrics[field]) : Number(metrics[field]).toFixed(3);
+  };
+  const semanticSelectedRows = [];
+  if (semanticSelection) {
+    const selectedDevelopmentRun = semanticStudy.fusion_runs.find((row) =>
+      row.component_id === semanticSelection.selected.component &&
+      row.fusion_id === "attribution_relevant_mean_plus_pre_final");
+    const metrics = selectedDevelopmentRun
+      ? selectedDevelopmentRun.metrics
+      : semanticSelection.selected.nested_grouped_oof;
+    semanticSelectedRows.push({
+      label: "Initial Synthetic · meeting-grouped OOF",
+      n: semanticSelection.coverage.selected_representation.total,
+      metrics: {
+        macro_subtype_auroc: metrics.macro_subtype_auroc,
+        auroc: metrics.auroc,
+        correct_vs_wrong_auroc: metrics.correct_vs_wrong_auroc,
+        correct_vs_false_attribution_auroc: metrics.correct_vs_false_attribution_auroc,
+        correct_attribution_acceptance_tpr: metrics.correct_attribution_retention,
+        wrong_attribution_rejection: metrics.wrong_attribution_rejection,
+        false_attribution_rejection: metrics.false_attribution_rejection,
+      },
+    });
+  }
+  if (semanticStudy.real_transfer) {
+    const primaryLayer = Number(semanticSelection.selected.primary_layer);
+    const primary = semanticStudy.real_transfer.metrics.layers
+      .find((item) => Number(item.layer) === primaryLayer);
+    if (primary) semanticSelectedRows.push({
+      label: `Real data transfer · frozen layer ${primaryLayer}`,
+      n: semanticStudy.real_transfer.examples.eligible,
+      metrics: primary.metrics,
+    });
+  } else {
+    semanticSelectedRows.push({ label: "Real data transfer · frozen layer 27", n: "In progress", metrics: null });
+  }
+  document.getElementById("semantic-reasoning-selected-results").innerHTML = semanticSelectedRows
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${row.n}</td>
+      <td>${semanticMetric(row.metrics, "macro_subtype_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_vs_wrong_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_vs_false_attribution_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_attribution_acceptance_tpr", true)}</td>
+      <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
+      <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
+    .join("");
+  const semanticResultCells = (row) => `<tr>
+    <th scope="row">${escapeHtml(row.component)}</th><td>${row.n}</td>
+    <td>${semanticMetric(row.metrics, "macro_subtype_auroc")}</td>
+    <td>${semanticMetric(row.metrics, "auroc")}</td>
+    <td>${semanticMetric(row.metrics, "correct_vs_wrong_auroc")}</td>
+    <td>${semanticMetric(row.metrics, "correct_vs_false_attribution_auroc")}</td>
+    <td>${semanticMetric(row.metrics, "correct_attribution_acceptance_tpr", true)}</td>
+    <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
+    <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td>
+    <td>${row.selected_layers.join(", ")}</td></tr>`;
+  const semanticAnchorSelect = document.getElementById("semantic-reasoning-anchor-select");
+  semanticAnchorSelect.innerHTML = semanticStudy.anchors
+    .map((row) => `<option value="${escapeHtml(row.anchor_id)}">${escapeHtml(row.anchor)}</option>`).join("");
+  if (semanticStudy.anchors.some((row) => row.anchor_id === "attribution_relevant_tokens_mean")) {
+    semanticAnchorSelect.value = "attribution_relevant_tokens_mean";
+  }
+  const renderSemanticIndividuals = () => {
+    document.getElementById("semantic-reasoning-individual-runs").innerHTML = semanticStudy.individual_runs
+      .filter((row) => row.anchor_id === semanticAnchorSelect.value)
+      .map(semanticResultCells).join("");
+  };
+  semanticAnchorSelect.addEventListener("change", renderSemanticIndividuals);
+  renderSemanticIndividuals();
+  const semanticFusionSelect = document.getElementById("semantic-reasoning-fusion-select");
+  const semanticFusionOptions = [...new Map(semanticStudy.fusion_runs.map((row) => [row.fusion_id, row.fusion])).entries()];
+  semanticFusionSelect.innerHTML = semanticFusionOptions
+    .map(([id, label]) => `<option value="${escapeHtml(id)}">${escapeHtml(label)}</option>`).join("");
+  const renderSemanticFusions = () => {
+    document.getElementById("semantic-reasoning-fusion-runs").innerHTML = semanticStudy.fusion_runs
+      .filter((row) => row.fusion_id === semanticFusionSelect.value)
+      .map(semanticResultCells).join("");
+  };
+  semanticFusionSelect.addEventListener("change", renderSemanticFusions);
+  renderSemanticFusions();
+  const semanticChartSelect = document.getElementById("semantic-reasoning-chart-run");
+  const semanticChartMetric = document.getElementById("semantic-reasoning-chart-metric");
+  const semanticCharts = [...semanticStudy.fusion_charts, ...semanticStudy.individual_charts];
+  semanticChartSelect.innerHTML = semanticCharts
+    .map((run) => `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)}</option>`).join("");
+  if (semanticCharts.some((run) => run.id === "fusion_post_attention_residual_attribution_relevant_mean_plus_pre_final")) {
+    semanticChartSelect.value = "fusion_post_attention_residual_attribution_relevant_mean_plus_pre_final";
+  }
+  const renderSemanticChart = () => {
+    const run = semanticCharts.find((item) => item.id === semanticChartSelect.value) || semanticCharts[0];
+    if (!run) return;
+    const field = semanticChartMetric.value;
+    const labels = { macro_auroc: "Macro subtype AUROC", auroc: "Overall AUROC", wrong_auroc: "Wrong-attribution AUROC", false_auroc: "False-attribution AUROC" };
+    const values = run.layers.map((row) => Number(row[field]));
+    const bounds = { left: 54, right: 805, top: 26, bottom: 292 };
+    const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (run.layers.length - 1);
+    const step = .1;
+    const yMin = Math.max(0, Math.floor((Math.min(...values) - .04) / step) * step);
+    const yMax = Math.min(1, Math.max(yMin + .2, Math.ceil((Math.max(...values) + .04) / step) * step));
+    const y = (value) => bounds.bottom - ((Number(value) - yMin) / (yMax - yMin)) * (bounds.bottom - bounds.top);
+    const ticks = Array.from({ length: Math.round((yMax - yMin) / step) + 1 }, (_, index) => yMin + index * step);
+    const points = run.layers.map((row, index) => `${x(index)},${y(row[field])}`).join(" ");
+    document.getElementById("semantic-reasoning-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(labels[field])} by transformer layer for ${escapeHtml(run.label)}">
+      ${ticks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Number(tick).toFixed(1)}</text>`).join("")}
+      ${run.layers.map((row, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${row.layer}</text>`).join("")}
+      <polyline class="probe-line validation" points="${points}"/>
+      ${run.layers.map((row, index) => `<circle class="probe-point validation" cx="${x(index)}" cy="${y(row[field])}" r="3.5"><title>Layer ${row.layer}: ${Number(row[field]).toFixed(3)}</title></circle>`).join("")}
+      <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
+      <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(labels[field])}</text>
+    </svg>`;
+  };
+  semanticChartSelect.addEventListener("change", renderSemanticChart);
+  semanticChartMetric.addEventListener("change", renderSemanticChart);
+  renderSemanticChart();
   document.getElementById("corrected-semantic-positions").innerHTML = corrected.position_study.semantic_positions
     .map((row) => `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${escapeHtml(row.hypothesis)}</td><td>${escapeHtml(row.scope)}</td></tr>`)
     .join("");
   document.getElementById("corrected-position-scope").textContent = corrected.position_study.scope;
   const positionLabels = {
     prompt_end: "End of prompt",
+    evidence_span_last: "Attribution-evidence span · last token",
+    evidence_span_mean: "Attribution-evidence span · mean",
+    evidence_span_max: "Attribution-evidence span · max",
+    target_response_last: "Target-response span · last token",
+    target_response_mean: "Target-response span · mean",
+    target_response_max: "Target-response span · max",
     reasoning_25pct: "Reasoning 25%",
     reasoning_50pct: "Reasoning 50%",
     reasoning_75pct: "Reasoning 75%",
