@@ -498,9 +498,19 @@
       <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
       <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
     .join("");
+  const componentFusions = semanticStudy.component_fusions;
+  document.getElementById("semantic-component-fusion-conclusion").textContent = componentFusions.conclusion;
+  document.getElementById("semantic-component-fusion-results").innerHTML = componentFusions.runs
+    .map((row) => semanticResultCells({ ...row, component: row.fusion }))
+    .join("");
   const semanticChartSelect = document.getElementById("semantic-reasoning-chart-run");
   const semanticChartMetric = document.getElementById("semantic-reasoning-chart-metric");
-  const semanticCharts = [...semanticStudy.fusion_charts, ...semanticTransitions.charts, ...semanticStudy.individual_charts];
+  const semanticCharts = [
+    ...semanticStudy.fusion_charts,
+    ...semanticTransitions.charts,
+    ...componentFusions.charts,
+    ...semanticStudy.individual_charts,
+  ];
   semanticChartSelect.innerHTML = semanticCharts
     .map((run) => `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)}</option>`).join("");
   if (semanticCharts.some((run) => run.id === "fusion_post_attention_residual_attribution_relevant_mean_plus_pre_final")) {
