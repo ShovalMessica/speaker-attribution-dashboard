@@ -368,6 +368,44 @@
   correctedRunSelect.addEventListener("change", renderCorrectedPositionChart);
   correctedMetricSelect.addEventListener("change", renderCorrectedPositionChart);
   renderCorrectedPositionChart();
+  const fusionTransfer = corrected.position_study.real_transfer;
+  document.getElementById("corrected-fusion-transfer-selection").textContent =
+    `${fusionTransfer.label}. ${fusionTransfer.selection}`;
+  const transferMetricCell = (metrics, field, percent = false) => {
+    if (metrics[field] === undefined) return "—";
+    return percent ? pct(metrics[field]) : Number(metrics[field]).toFixed(3);
+  };
+  const transferRows = [
+    {
+      label: fusionTransfer.synthetic.dataset,
+      n: fusionTransfer.synthetic.n,
+      metrics: fusionTransfer.synthetic.metrics,
+    },
+    {
+      label: fusionTransfer.real.dataset,
+      n: fusionTransfer.real.n,
+      metrics: fusionTransfer.real.metrics,
+    },
+    {
+      label: "Real data · model output-probability baseline",
+      n: fusionTransfer.real.n,
+      metrics: fusionTransfer.output_probability_baseline,
+    },
+  ];
+  document.getElementById("corrected-fusion-transfer-rows").innerHTML = transferRows
+    .map((row) => `<tr>
+      <th scope="row">${escapeHtml(row.label)}</th>
+      <td>${row.n}</td>
+      <td>${transferMetricCell(row.metrics, "auroc")}</td>
+      <td>${transferMetricCell(row.metrics, "correct_vs_wrong_auroc")}</td>
+      <td>${transferMetricCell(row.metrics, "correct_vs_false_attribution_auroc")}</td>
+      <td>${transferMetricCell(row.metrics, "correct_attribution_acceptance_tpr", true)}</td>
+      <td>${transferMetricCell(row.metrics, "wrong_attribution_rejection", true)}</td>
+      <td>${transferMetricCell(row.metrics, "false_attribution_rejection", true)}</td>
+    </tr>`)
+    .join("");
+  document.getElementById("corrected-fusion-transfer-conclusion").textContent =
+    fusionTransfer.conclusion;
   const probe = coarseProbing.probe;
   document.getElementById("coarse-probe-input").innerHTML = probe.input
     .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
