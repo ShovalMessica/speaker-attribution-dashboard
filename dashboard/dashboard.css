@@ -237,6 +237,10 @@ h1 {
 .probe-line.real-test { stroke: #356b9a; }
 .probe-point.synthetic-validation { fill: #17705a; }
 .probe-point.real-test { fill: #356b9a; }
+.probe-bar.synthetic-validation { fill: #17705a; }
+.probe-bar.real-test { fill: #356b9a; }
+.probe-bar-value { fill: #000; font-size: 13px; font-weight: 700; }
+.fixed-representation-note { margin: 4px 0 0 !important; color: #000; font-size: 16px; }
 .coarse-probe-chart-title { margin: 14px 0 6px !important; font-weight: 700; color: var(--ink) !important; }
 .coarse-probe-chart-description { max-width: 840px; margin: 0 0 10px !important; color: #000 !important; font-size: 13px; }
 .coarse-probe-split-legend { display: flex; gap: 22px; margin: 0 0 4px; font-size: 13px; font-weight: 700; }

@@ -132,11 +132,23 @@
     <td>${dataset.outcomes.false_attribution}</td>
     <td>${dataset.examples}</td>
   </tr>`).join("");
-  const standardizedExperimentLayers = (experimentId) => standardizedProbe.layers.map((row) => ({
-    layer: row.layer,
-    synthetic_validation: row[experimentId].synthetic_validation,
-    real_test: row[experimentId].real_test,
-  }));
+  const standardizedExperimentDefinition = (experimentId) => standardizedProbe.experiments
+    .find((experiment) => experiment.id === experimentId);
+  const standardizedExperimentLayers = (experimentId) => {
+    const experiment = standardizedExperimentDefinition(experimentId);
+    if (experiment?.fixed_metrics) {
+      return [{
+        layer: experiment.representation_label,
+        synthetic_validation: experiment.fixed_metrics.synthetic_validation,
+        real_test: experiment.fixed_metrics.real_test,
+      }];
+    }
+    return standardizedProbe.layers.map((row) => ({
+      layer: row.layer,
+      synthetic_validation: row[experimentId].synthetic_validation,
+      real_test: row[experimentId].real_test,
+    }));
+  };
   const standardizedSelectedLayer = (experimentId) => standardizedExperimentLayers(experimentId)
     .reduce((current, candidate) =>
       Number(candidate.synthetic_validation.auroc) > Number(current.synthetic_validation.auroc)
@@ -189,15 +201,15 @@
         </table>
       </div>
       <p class="standardized-method-note">${escapeHtml(experiment.method_note)}</p>
-      <h4>Selected layer result</h4>
-      <p class="standardized-method-note">Layer ${standardizedSelectedLayer(experiment.id).layer}, selected by Initial Synthetic validation AUROC. The same frozen layer and threshold are then evaluated on Real data.</p>
+      <h4>Selected representation result</h4>
+      <p class="standardized-method-note">${escapeHtml(experiment.selection_note || `Layer ${standardizedSelectedLayer(experiment.id).layer}, selected by Initial Synthetic validation AUROC. The same frozen layer and threshold are then evaluated on Real data.`)}</p>
       <div class="coarse-probe-counts-table-wrap">
         <table class="coarse-probe-counts-table standardized-best-table">
           <thead><tr><th>Metric</th><th>Synthetic baseline</th><th>Synthetic probe</th><th>Real baseline</th><th>Real probe</th></tr></thead>
           <tbody>${standardizedBestRows(experiment.id)}</tbody>
         </table>
       </div>
-      <h4>Performance across transformer layers</h4>
+      <h4>${experiment.fixed_metrics ? "Performance of the selected representation" : "Performance across transformer layers"}</h4>
       <label class="standardized-metric-control">Metric
         <select class="standardized-metric-select">${standardizedProbe.metrics.map((metric) => `<option value="${escapeHtml(metric.id)}">${escapeHtml(metric.label)}</option>`).join("")}</select>
       </label>
@@ -216,13 +228,32 @@
     document.querySelectorAll(".standardized-experiment-card").forEach((card) => {
       const experimentId = card.dataset.experimentId;
       const layerRows = standardizedExperimentLayers(experimentId);
-      const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (layerRows.length - 1);
+      const x = (index) => layerRows.length === 1
+        ? (bounds.left + bounds.right) / 2
+        : bounds.left + index * (bounds.right - bounds.left) / (layerRows.length - 1);
       const series = [
         { id: "synthetic-validation", label: "Initial Synthetic validation", field: "synthetic_validation" },
         { id: "real-test", label: "Real data test", field: "real_test" },
       ];
       const renderMetric = (metricId) => {
         const metric = standardizedProbe.metrics.find((item) => item.id === metricId) || standardizedProbe.metrics[0];
+        if (layerRows.length === 1) {
+          const row = layerRows[0];
+          const bars = [
+            { id: "synthetic-validation", label: "Initial Synthetic", value: row.synthetic_validation[metric.id], x: 278 },
+            { id: "real-test", label: "Real data", value: row.real_test[metric.id], x: 478 },
+          ];
+          card.querySelector(".standardized-metric-chart").innerHTML = `
+            <figcaption>${escapeHtml(metric.label)}</figcaption>
+            <p class="fixed-representation-note">One fixed ensemble (${escapeHtml(row.layer)}); there is no layer sweep for this experiment.</p>
+            <div class="coarse-probe-chart"><svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} for the fixed ensemble on Initial Synthetic validation and Real data test">
+              ${yTicks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
+              ${bars.map((bar) => `<rect class="probe-bar ${bar.id}" x="${bar.x}" y="${y(bar.value)}" width="84" height="${bounds.bottom - y(bar.value)}" rx="3"><title>${bar.label}: ${standardizedFormat(metric.id, bar.value)}</title></rect><text class="probe-bar-value" x="${bar.x + 42}" y="${Math.max(18, y(bar.value) - 8)}" text-anchor="middle">${standardizedFormat(metric.id, bar.value)}</text><text class="probe-axis-label" x="${bar.x + 42}" y="315" text-anchor="middle">${bar.label}</text>`).join("")}
+              <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Evaluation dataset</text>
+              <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
+            </svg></div>`;
+          return;
+        }
         card.querySelector(".standardized-metric-chart").innerHTML = `
           <figcaption>${escapeHtml(metric.label)}</figcaption>
           <div class="coarse-probe-chart"><svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} on Initial Synthetic validation and Real data test">
@@ -258,6 +289,85 @@
     .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`).join("");
   document.getElementById("coarse-split-stratification").textContent = coarseProbing.split.stratification;
   document.getElementById("coarse-split-note").textContent = coarseProbing.split.note;
+  const corrected = coarseProbing.corrected_protocol;
+  document.getElementById("corrected-protocol-headline").textContent = corrected.headline;
+  document.getElementById("corrected-protocol-rules").innerHTML = corrected.protocol
+    .map((rule) => `<li>${escapeHtml(rule)}</li>`).join("");
+  document.getElementById("corrected-development-summary").textContent =
+    `${corrected.development.eligible} proposals · ${corrected.development.correct} correct / ${corrected.development.wrong} wrong / ${corrected.development.false_attribution} false attribution · ${corrected.development.meetings} meetings.`;
+  document.getElementById("corrected-development-sources").innerHTML = corrected.development.sources
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.source)}</th><td>${row.correct}</td><td>${row.wrong}</td><td>${row.false_attribution}</td><td>${row.total}</td></tr>`)
+    .join("");
+  document.getElementById("corrected-anchor-label").textContent =
+    `${corrected.anchor.label}. Nested selected layers by fold: ${corrected.anchor.selected_layers.join(", ")}.`;
+  const anchor = corrected.anchor.metrics;
+  document.getElementById("corrected-anchor-metrics").innerHTML = `<tr>
+    <td>${Number(anchor.auroc).toFixed(3)}</td>
+    <td>${Number(anchor.correct_vs_wrong_auroc).toFixed(3)}</td>
+    <td>${Number(anchor.correct_vs_false_attribution_auroc).toFixed(3)}</td>
+    <td>${pct(anchor.correct_attribution_acceptance_tpr)}</td>
+    <td>${pct(anchor.wrong_attribution_rejection)}</td>
+    <td>${pct(anchor.false_attribution_rejection)}</td>
+  </tr>`;
+  document.getElementById("corrected-anchor-pca").textContent = corrected.anchor.pca_conclusion;
+  document.getElementById("corrected-semantic-positions").innerHTML = corrected.position_study.semantic_positions
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${escapeHtml(row.hypothesis)}</td><td>${escapeHtml(row.scope)}</td></tr>`)
+    .join("");
+  document.getElementById("corrected-position-scope").textContent = corrected.position_study.scope;
+  const positionLabels = {
+    prompt_end: "End of prompt",
+    reasoning_25pct: "Reasoning 25%",
+    reasoning_50pct: "Reasoning 50%",
+    reasoning_75pct: "Reasoning 75%",
+    reasoning_last: "Last reasoning token",
+    final_cue_pre_prediction: "Immediate pre-answer state",
+  };
+  const metricOrDash = (value) => value === undefined ? "—" : Number(value).toFixed(3);
+  document.getElementById("corrected-position-runs").innerHTML = corrected.position_study.runs
+    .map((row) => `<tr>
+      <th scope="row">${escapeHtml(row.component)}</th>
+      <td>${escapeHtml(positionLabels[row.position] || row.position)}</td>
+      <td>${escapeHtml(row.priority)}</td>
+      <td>${escapeHtml(row.status)}</td>
+      <td>${metricOrDash(row.auroc)}</td>
+      <td>${metricOrDash(row.wrong_auroc)}</td>
+      <td>${metricOrDash(row.false_auroc)}</td>
+    </tr>`).join("");
+  const correctedRunSelect = document.getElementById("corrected-position-run");
+  const correctedMetricSelect = document.getElementById("corrected-position-metric");
+  correctedRunSelect.innerHTML = corrected.position_study.completed_runs
+    .map((run) => `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)}</option>`)
+    .join("");
+  const renderCorrectedPositionChart = () => {
+    const run = corrected.position_study.completed_runs.find((item) => item.id === correctedRunSelect.value)
+      || corrected.position_study.completed_runs[0];
+    if (!run) {
+      document.getElementById("corrected-position-chart").textContent = "No completed position experiment yet.";
+      return;
+    }
+    const field = correctedMetricSelect.value;
+    const labels = { auroc: "Overall AUROC", wrong_auroc: "Wrong-attribution AUROC", false_auroc: "False-attribution AUROC" };
+    const values = run.layers.map((row) => Number(row[field]));
+    const bounds = { left: 54, right: 805, top: 26, bottom: 292 };
+    const x = (index) => bounds.left + index * (bounds.right - bounds.left) / (run.layers.length - 1);
+    const step = .1;
+    const yMin = Math.max(0, Math.floor((Math.min(...values) - .04) / step) * step);
+    const yMax = Math.min(1, Math.max(yMin + .2, Math.ceil((Math.max(...values) + .04) / step) * step));
+    const y = (value) => bounds.bottom - ((Number(value) - yMin) / (yMax - yMin)) * (bounds.bottom - bounds.top);
+    const ticks = Array.from({ length: Math.round((yMax - yMin) / step) + 1 }, (_, index) => yMin + index * step);
+    const points = run.layers.map((row, index) => `${x(index)},${y(row[field])}`).join(" ");
+    document.getElementById("corrected-position-chart").innerHTML = `<svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(labels[field])} by transformer layer for ${escapeHtml(run.label)}">
+      ${ticks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Number(tick).toFixed(1)}</text>`).join("")}
+      ${run.layers.map((row, index) => `<text class="probe-axis-label" x="${x(index)}" y="315" text-anchor="middle">${row.layer}</text>`).join("")}
+      <polyline class="probe-line validation" points="${points}"/>
+      ${run.layers.map((row, index) => `<circle class="probe-point validation" cx="${x(index)}" cy="${y(row[field])}" r="3.5"><title>Layer ${row.layer}: ${Number(row[field]).toFixed(3)}</title></circle>`).join("")}
+      <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
+      <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(labels[field])}</text>
+    </svg>`;
+  };
+  correctedRunSelect.addEventListener("change", renderCorrectedPositionChart);
+  correctedMetricSelect.addEventListener("change", renderCorrectedPositionChart);
+  renderCorrectedPositionChart();
   const probe = coarseProbing.probe;
   document.getElementById("coarse-probe-input").innerHTML = probe.input
     .map((item) => `<dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd>`)
