@@ -237,6 +237,23 @@
       ];
       const renderMetric = (metricId) => {
         const metric = standardizedProbe.metrics.find((item) => item.id === metricId) || standardizedProbe.metrics[0];
+        if (layerRows.length === 1) {
+          const row = layerRows[0];
+          const bars = [
+            { id: "synthetic-validation", label: "Initial Synthetic", value: row.synthetic_validation[metric.id], x: 278 },
+            { id: "real-test", label: "Real data", value: row.real_test[metric.id], x: 478 },
+          ];
+          card.querySelector(".standardized-metric-chart").innerHTML = `
+            <figcaption>${escapeHtml(metric.label)}</figcaption>
+            <p class="fixed-representation-note">One fixed ensemble (${escapeHtml(row.layer)}); there is no layer sweep for this experiment.</p>
+            <div class="coarse-probe-chart"><svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} for the fixed ensemble on Initial Synthetic validation and Real data test">
+              ${yTicks.map((tick) => `<line class="probe-grid" x1="${bounds.left}" y1="${y(tick)}" x2="${bounds.right}" y2="${y(tick)}"/><text class="probe-axis-label" x="45" y="${y(tick) + 4}" text-anchor="end">${Math.round(tick * 100)}%</text>`).join("")}
+              ${bars.map((bar) => `<rect class="probe-bar ${bar.id}" x="${bar.x}" y="${y(bar.value)}" width="84" height="${bounds.bottom - y(bar.value)}" rx="3"><title>${bar.label}: ${standardizedFormat(metric.id, bar.value)}</title></rect><text class="probe-bar-value" x="${bar.x + 42}" y="${Math.max(18, y(bar.value) - 8)}" text-anchor="middle">${standardizedFormat(metric.id, bar.value)}</text><text class="probe-axis-label" x="${bar.x + 42}" y="315" text-anchor="middle">${bar.label}</text>`).join("")}
+              <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Evaluation dataset</text>
+              <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
+            </svg></div>`;
+          return;
+        }
         card.querySelector(".standardized-metric-chart").innerHTML = `
           <figcaption>${escapeHtml(metric.label)}</figcaption>
           <div class="coarse-probe-chart"><svg viewBox="0 0 840 350" role="img" aria-label="${escapeHtml(metric.label)} on Initial Synthetic validation and Real data test">
@@ -246,7 +263,7 @@
               const points = layerRows.map((row, index) => `${x(index)},${y(row[item.field][metric.id])}`).join(" ");
               return `<polyline class="probe-line ${item.id}" points="${points}"/>${layerRows.map((row, index) => `<circle class="probe-point ${item.id}" cx="${x(index)}" cy="${y(row[item.field][metric.id])}" r="3.5"><title>${item.label} · layer ${row.layer}: ${standardizedFormat(metric.id, row[item.field][metric.id])}</title></circle>`).join("")}`;
             }).join("")}
-            <text class="probe-axis-title" x="430" y="344" text-anchor="middle">${layerRows.length === 1 ? "Selected representation" : "Transformer layer"}</text>
+            <text class="probe-axis-title" x="430" y="344" text-anchor="middle">Transformer layer</text>
             <text class="probe-axis-title" transform="translate(13 160) rotate(-90)" text-anchor="middle">${escapeHtml(metric.label)}</text>
           </svg></div>`;
       };
