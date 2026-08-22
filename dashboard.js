@@ -633,6 +633,16 @@
   document.getElementById("corrected-1242-reference-conclusion").textContent = correctedReference.conclusion;
   document.getElementById("corrected-1242-reference-calibration").textContent = correctedReference.calibration_warning;
   document.getElementById("corrected-1242-reference-overfitting").textContent = correctedReference.overfitting_warning;
+  const correctedNextStudy = correctedReference.next_study;
+  document.getElementById("corrected-1242-next-status").textContent = correctedNextStudy
+    ? `Status: ${correctedNextStudy.status.replaceAll("_", " ")}.`
+    : "Status: pending.";
+  document.getElementById("corrected-1242-next-hypothesis").textContent = correctedNextStudy
+    ? `Hypothesis: ${correctedNextStudy.hypothesis}`
+    : "";
+  document.getElementById("corrected-1242-next-scope").textContent = correctedNextStudy
+    ? `Components: ${correctedNextStudy.components.join(", ")}. Layers: ${correctedNextStudy.layers.join(", ")}. Selection: wrong-attribution rejection at at least 90% correct retention; false rejection remains separately reported.`
+    : "";
   const fixedReference = semanticStudy.fixed_1242_reference;
   document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
   document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
