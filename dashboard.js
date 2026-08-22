@@ -584,6 +584,29 @@
       <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
       <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
     .join("");
+  const fixedReference = semanticStudy.fixed_1242_reference;
+  document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
+  document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
+  document.getElementById("fixed-1242-activation-coverage").textContent = fixedReference.activation_coverage;
+  document.getElementById("fixed-1242-reference-protocol").textContent = fixedReference.protocol;
+  const fixedPositionLabels = {
+    prompt_end: "End of prompt",
+    reasoning_last: "Last reasoning token",
+    final_cue_pre_prediction: "':' ending FINAL: · pre-answer",
+    generated_answer_token: "Generated answer token",
+  };
+  document.getElementById("fixed-1242-reference-results").innerHTML = fixedReference.runs.length
+    ? fixedReference.runs.map((row) => `<tr><th scope="row">${escapeHtml(row.component)}</th>
+      <td>${escapeHtml(fixedPositionLabels[row.position] || row.position)}</td>
+      <td>${row.outcomes.correct}</td><td>${row.outcomes.wrong}</td><td>${row.outcomes.false_attribution}</td>
+      <td>${semanticMetric(row.metrics, "correct_attribution_acceptance_tpr", true)}</td>
+      <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
+      <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td>
+      <td>${semanticMetric(row.metrics, "auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_vs_wrong_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_vs_false_attribution_auroc")}</td>
+      <td>${row.selected_layers.join(", ")}</td></tr>`).join("")
+    : `<tr><td colspan="12">Running</td></tr>`;
   const candidateStudy = semanticStudy.candidate_target_study;
   document.getElementById("semantic-candidate-status").textContent = candidateStudy.status;
   document.getElementById("semantic-candidate-capture").textContent = candidateStudy.capture;
