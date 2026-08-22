@@ -633,15 +633,52 @@
   document.getElementById("corrected-1242-reference-conclusion").textContent = correctedReference.conclusion;
   document.getElementById("corrected-1242-reference-calibration").textContent = correctedReference.calibration_warning;
   document.getElementById("corrected-1242-reference-overfitting").textContent = correctedReference.overfitting_warning;
-  const correctedNextStudy = correctedReference.next_study;
-  document.getElementById("corrected-1242-next-status").textContent = correctedNextStudy
-    ? `Status: ${correctedNextStudy.status.replaceAll("_", " ")}.`
-    : "Status: pending.";
-  document.getElementById("corrected-1242-next-hypothesis").textContent = correctedNextStudy
-    ? `Hypothesis: ${correctedNextStudy.hypothesis}`
+  const componentStudy = semanticStudy.corrected_component_study;
+  document.getElementById("corrected-component-status").textContent = `Status: ${componentStudy.status.replaceAll("_", " ")}.`;
+  document.getElementById("corrected-component-scope").textContent = componentStudy.scope;
+  document.getElementById("corrected-component-synthetic-results").innerHTML = componentStudy.synthetic
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.component)}</th><td>${row.layer}</td>
+      <td>${pct(row.metrics.correct_retention)}</td><td>${pct(row.metrics.wrong_attribution_rejection)}</td>
+      <td>${pct(row.metrics.false_attribution_rejection)}</td><td>${decimal(row.metrics.overall_auroc)}</td>
+      <td>${decimal(row.metrics.wrong_auroc)}</td><td>${decimal(row.metrics.false_auroc)}</td>
+      <td>${escapeHtml(row.decision.replaceAll("_", " "))}</td></tr>`).join("");
+  document.getElementById("corrected-component-real-results").innerHTML = componentStudy.real.length
+    ? componentStudy.real.map((row) => `<tr><th scope="row">${escapeHtml(row.component.replaceAll("_", " "))}</th>
+      <td>${pct(row.correct_retention)}</td><td>${pct(row.wrong_attribution_rejection)}</td>
+      <td>${pct(row.false_attribution_rejection)}</td><td>${decimal(row.overall_auroc)}</td>
+      <td>${decimal(row.wrong_auroc)}</td><td>${decimal(row.false_auroc)}</td></tr>`).join("")
+    : `<tr><td colspan="7">Pending</td></tr>`;
+  document.getElementById("corrected-component-conclusion").textContent = componentStudy.conclusion;
+  const anchorStudy = semanticStudy.corrected_anchor_study;
+  document.getElementById("corrected-anchor-status").textContent = `Status: ${anchorStudy.status.replaceAll("_", " ")}.`;
+  document.getElementById("corrected-anchor-hypothesis").textContent = `Hypothesis: ${anchorStudy.hypothesis}`;
+  document.getElementById("corrected-anchor-scope").textContent = anchorStudy.scope;
+  const anchorLabels = {
+    prompt_end: "End of prompt",
+    "attribution_evidence_span:mean": "Evidence span · mean",
+    "target_response_span:mean": "Target response · mean",
+    reasoning_last: "Last reasoning token",
+    final_cue_pre_prediction: "':' ending FINAL: · pre-answer",
+  };
+  const anchorRows = [
+    ...anchorStudy.synthetic.map((row) => ({ ...row, evaluation: "Non-Real grouped OOF" })),
+    ...anchorStudy.real.map((row) => ({ ...row, evaluation: "Frozen Real291 transfer" })),
+  ];
+  document.getElementById("corrected-anchor-results").innerHTML = anchorRows.length
+    ? anchorRows.map((row) => `<tr><th scope="row">${escapeHtml(anchorLabels[row.anchor] || row.anchor)}</th>
+      <td>${escapeHtml(row.evaluation)}</td><td>${pct(row.correct_retention)}</td>
+      <td>${pct(row.wrong_attribution_rejection)}</td><td>${pct(row.false_attribution_rejection)}</td>
+      <td>${decimal(row.overall_auroc)}</td><td>${decimal(row.wrong_auroc)}</td>
+      <td>${decimal(row.false_auroc)}</td></tr>`).join("")
+    : `<tr><td colspan="8">Pending</td></tr>`;
+  document.getElementById("corrected-anchor-conclusion").textContent = anchorStudy.conclusion
+    ? anchorStudy.conclusion.finding
+    : "Pending.";
+  document.getElementById("corrected-anchor-shortcut").textContent = anchorStudy.conclusion
+    ? anchorStudy.conclusion.shortcut
     : "";
-  document.getElementById("corrected-1242-next-scope").textContent = correctedNextStudy
-    ? `Components: ${correctedNextStudy.components.join(", ")}. Layers: ${correctedNextStudy.layers.join(", ")}. Selection: wrong-attribution rejection at at least 90% correct retention; false rejection remains separately reported.`
+  document.getElementById("corrected-anchor-token-distinction").textContent = anchorStudy.conclusion
+    ? anchorStudy.conclusion.token_distinction
     : "";
   const fixedReference = semanticStudy.fixed_1242_reference;
   document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
