@@ -368,6 +368,30 @@
   correctedRunSelect.addEventListener("change", renderCorrectedPositionChart);
   correctedMetricSelect.addEventListener("change", renderCorrectedPositionChart);
   renderCorrectedPositionChart();
+  const semanticTransferLabels = {
+    evidence_span_mean: "Attribution-evidence span · mean",
+    evidence_span_last: "Attribution-evidence span · last token",
+    target_response_mean: "Target-response span · mean",
+    target_response_last: "Target-response span · last token",
+    initial_prompt_end: "End of prompt",
+    initial_reasoning_last: "Last reasoning token",
+    initial_final_cue_pre_prediction: "Immediate pre-answer state",
+    evidence_last_plus_pre_final: "Evidence last + immediate pre-answer",
+  };
+  document.getElementById("corrected-semantic-transfer-runs").innerHTML =
+    corrected.position_study.semantic_transfer_runs
+      .map((row) => `<tr>
+        <th scope="row">${escapeHtml(row.component)}</th>
+        <td>${escapeHtml(semanticTransferLabels[row.position] || row.position)}</td>
+        <td>${row.layer}</td>
+        <td>${Number(row.synthetic.auroc).toFixed(3)}</td>
+        <td>${Number(row.synthetic.correct_vs_wrong_auroc).toFixed(3)}</td>
+        <td>${Number(row.synthetic.correct_vs_false_attribution_auroc).toFixed(3)}</td>
+        <td>${Number(row.real.auroc).toFixed(3)}</td>
+        <td>${Number(row.real.correct_vs_wrong_auroc).toFixed(3)}</td>
+        <td>${Number(row.real.correct_vs_false_attribution_auroc).toFixed(3)}</td>
+      </tr>`)
+      .join("");
   const fusionTransfer = corrected.position_study.real_transfer;
   document.getElementById("corrected-fusion-transfer-selection").textContent =
     `${fusionTransfer.label}. ${fusionTransfer.selection}`;
