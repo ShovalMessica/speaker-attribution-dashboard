@@ -585,6 +585,54 @@
       <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
       <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
     .join("");
+  const correctedReference = semanticStudy.corrected_1242_reference;
+  document.getElementById("corrected-1242-reference-status").textContent = correctedReference.status.replaceAll("_", " ");
+  document.getElementById("corrected-1242-reference-scope").textContent = correctedReference.scope;
+  document.getElementById("corrected-1242-reference-position").textContent = `Representation: ${correctedReference.position}`;
+  document.getElementById("corrected-1242-reference-selection").textContent = correctedReference.selection;
+  const correctedReferenceRows = [];
+  correctedReference.tracks.forEach((track) => {
+    correctedReferenceRows.push({
+      label: track.label,
+      evaluation: "Non-Real grouped OOF",
+      layer: track.selected_layer,
+      metrics: track.synthetic,
+    });
+    correctedReferenceRows.push({
+      label: track.label,
+      evaluation: "Real291 frozen transfer",
+      layer: track.selected_layer,
+      metrics: track.real,
+    });
+  });
+  if (correctedReference.baseline) {
+    correctedReferenceRows.push({
+      label: "Native output-confidence baseline",
+      evaluation: "Non-Real grouped OOF",
+      layer: "—",
+      metrics: correctedReference.baseline,
+    });
+  }
+  document.getElementById("corrected-1242-reference-results").innerHTML = correctedReferenceRows.length
+    ? correctedReferenceRows.map((row) => `<tr><th scope="row">${escapeHtml(row.label)}</th>
+      <td>${escapeHtml(row.evaluation)}</td><td>${row.layer}</td>
+      <td>${pct(row.metrics.correct_retention)}</td>
+      <td>${pct(row.metrics.wrong_attribution_rejection)}</td>
+      <td>${pct(row.metrics.false_attribution_rejection)}</td>
+      <td>${decimal(row.metrics.auroc)}</td>
+      <td>${decimal(row.metrics.correct_vs_wrong_auroc)}</td>
+      <td>${decimal(row.metrics.correct_vs_false_attribution_auroc)}</td></tr>`).join("")
+    : `<tr><td colspan="9">Pending</td></tr>`;
+  document.getElementById("corrected-1242-real-90-results").innerHTML = correctedReference.tracks.length
+    ? correctedReference.tracks.map((track) => `<tr><th scope="row">${escapeHtml(track.label)}</th>
+      <td>${track.selected_layer}</td>
+      <td>${pct(track.real_at_90pct.correct_retention)}</td>
+      <td>${pct(track.real_at_90pct.wrong_attribution_rejection)}</td>
+      <td>${pct(track.real_at_90pct.false_attribution_rejection)}</td></tr>`).join("")
+    : `<tr><td colspan="5">Pending</td></tr>`;
+  document.getElementById("corrected-1242-reference-conclusion").textContent = correctedReference.conclusion;
+  document.getElementById("corrected-1242-reference-calibration").textContent = correctedReference.calibration_warning;
+  document.getElementById("corrected-1242-reference-overfitting").textContent = correctedReference.overfitting_warning;
   const fixedReference = semanticStudy.fixed_1242_reference;
   document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
   document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
