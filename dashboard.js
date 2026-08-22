@@ -680,6 +680,42 @@
   document.getElementById("corrected-anchor-token-distinction").textContent = anchorStudy.conclusion
     ? anchorStudy.conclusion.token_distinction
     : "";
+  const lateDecisionStudy = semanticStudy.corrected_late_decision_study;
+  document.getElementById("corrected-late-decision-status").textContent = `Status: ${lateDecisionStudy.status.replaceAll("_", " ")}.`;
+  document.getElementById("corrected-late-decision-hypothesis").textContent = `Hypothesis: ${lateDecisionStudy.hypothesis}`;
+  document.getElementById("corrected-late-decision-scope").textContent = lateDecisionStudy.scope;
+  const lateAnchorLabels = {
+    reasoning_last: "Last reasoning token",
+    final_cue_pre_prediction: "':' ending FINAL: · pre-answer",
+    generated_answer_token: "Generated answer token",
+  };
+  const lateRole = (anchor) => anchor === "generated_answer_token" ? "Post-decision diagnostic" : "Pre-answer";
+  const lateRows = [
+    ...lateDecisionStudy.non_real.map((row) => ({ ...row, evaluation: "Non-Real grouped OOF" })),
+    ...lateDecisionStudy.real.map((row) => ({ ...row, evaluation: "Frozen Real291 transfer" })),
+  ];
+  document.getElementById("corrected-late-decision-results").innerHTML = lateRows.length
+    ? lateRows.map((row) => `<tr><th scope="row">${escapeHtml(row.component)}</th>
+      <td>${escapeHtml(lateAnchorLabels[row.anchor] || row.anchor)}</td><td>${lateRole(row.anchor)}</td>
+      <td>${escapeHtml(row.evaluation)}</td><td>${row.layer}</td><td>${pct(row.correct_retention)}</td>
+      <td>${pct(row.wrong_attribution_rejection)}</td><td>${pct(row.false_attribution_rejection)}</td>
+      <td>${decimal(row.overall_auroc)}</td><td>${decimal(row.wrong_auroc)}</td>
+      <td>${decimal(row.false_auroc)}</td></tr>`).join("")
+    : `<tr><td colspan="11">Pending</td></tr>`;
+  const commonRows = lateDecisionStudy.real_common_retention
+    ? lateDecisionStudy.real_common_retention.rows
+    : [];
+  document.getElementById("corrected-late-decision-common-retention").innerHTML = commonRows.length
+    ? commonRows.map((row) => `<tr><th scope="row">${escapeHtml(row.component)}</th>
+      <td>${escapeHtml(lateAnchorLabels[row.anchor] || row.anchor)}</td>
+      <td>${pct(row.wrong_attribution_rejection)}</td><td>${pct(row.false_attribution_rejection)}</td></tr>`).join("")
+    : `<tr><td colspan="4">Pending</td></tr>`;
+  document.getElementById("corrected-late-decision-complementarity").textContent = lateDecisionStudy.complementarity
+    ? `Pre-FINAL residual/MLP score correlation on Real291: ${decimal(lateDecisionStudy.complementarity.real_score_pearson)}. ${lateDecisionStudy.complementarity.fusion_decision}`
+    : "";
+  document.getElementById("corrected-late-decision-conclusion").textContent = lateDecisionStudy.conclusion
+    ? `${lateDecisionStudy.conclusion.timing} ${lateDecisionStudy.conclusion.deployable_component} ${lateDecisionStudy.conclusion.comparison_to_reference}`
+    : "Pending.";
   const fixedReference = semanticStudy.fixed_1242_reference;
   document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
   document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
