@@ -184,6 +184,7 @@
     .map((experiment) => `<article class="standardized-experiment-card" data-experiment-id="${escapeHtml(experiment.id)}">
       <h3>${escapeHtml(experiment.title)}</h3>
       <dl class="standardized-experiment-definition">
+        <dt>Status</dt><dd><strong>Historical/preliminary — not a valid current gate comparison</strong></dd>
         <dt>Change</dt><dd>${escapeHtml(experiment.change)}</dd>
       </dl>
       <h4>Data and split</h4>
