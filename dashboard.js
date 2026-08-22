@@ -584,6 +584,24 @@
       <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
       <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
     .join("");
+  const candidateStudy = semanticStudy.candidate_target_study;
+  document.getElementById("semantic-candidate-status").textContent = candidateStudy.status;
+  document.getElementById("semantic-candidate-capture").textContent = candidateStudy.capture;
+  document.getElementById("semantic-candidate-scope").textContent = candidateStudy.scope;
+  const candidateAnchorSelect = document.getElementById("semantic-candidate-anchor-select");
+  candidateAnchorSelect.innerHTML = candidateStudy.anchors
+    .map((row) => `<option value="${escapeHtml(row.anchor_id)}">${escapeHtml(row.anchor)}</option>`).join("");
+  if (candidateStudy.anchors.some((row) => row.anchor_id === "selected_candidate_name_mean")) {
+    candidateAnchorSelect.value = "selected_candidate_name_mean";
+  }
+  const renderCandidateRuns = () => {
+    const rows = candidateStudy.runs.filter((row) => row.anchor_id === candidateAnchorSelect.value);
+    document.getElementById("semantic-candidate-results").innerHTML = rows.length
+      ? rows.map(semanticResultCells).join("")
+      : `<tr><td colspan="10">In progress</td></tr>`;
+  };
+  candidateAnchorSelect.addEventListener("change", renderCandidateRuns);
+  renderCandidateRuns();
   const semanticChartSelect = document.getElementById("semantic-reasoning-chart-run");
   const semanticChartMetric = document.getElementById("semantic-reasoning-chart-metric");
   const semanticCharts = [
@@ -599,6 +617,7 @@
       })),
     }] : []),
     ...answerStudy.charts,
+    ...candidateStudy.charts,
     ...semanticStudy.fusion_charts,
     ...semanticTransitions.charts,
     ...componentFusions.charts,
