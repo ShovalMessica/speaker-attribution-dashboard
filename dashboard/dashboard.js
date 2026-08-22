@@ -553,6 +553,37 @@
       <td>${semanticMetric(row, "wrong_attribution_rejection", true)}</td>
       <td>${semanticMetric(row, "false_attribution_rejection", true)}</td></tr>`)
     .join("");
+  const answerScoreFusion = answerStudy.score_fusion;
+  document.getElementById("semantic-answer-score-fusion-conclusion").textContent = answerScoreFusion
+    ? answerScoreFusion.decision
+    : "The semantic-plus-answer score fusion is pending.";
+  const answerScoreFusionRows = [];
+  if (answerScoreFusion) {
+    const sections = [
+      ["Initial Synthetic · meeting-grouped OOF", answerScoreFusion.exact_common_scope.initial_synthetic.total, answerScoreFusion.initial_synthetic_grouped_oof],
+      ["Real data · frozen transfer", answerScoreFusion.exact_common_scope.real_data.total, answerScoreFusion.real_frozen_transfer],
+    ];
+    const representations = [
+      ["Balanced semantic reasoning · layer 27", "balanced_semantic_layer_27"],
+      ["Generated answer token · layer 18", "generated_answer_layer_18"],
+      ["Calibrated score fusion", "calibrated_score_fusion"],
+    ];
+    sections.forEach(([evaluation, n, metricsByRepresentation]) => {
+      representations.forEach(([representation, key]) => answerScoreFusionRows.push({
+        evaluation, representation, n, metrics: metricsByRepresentation[key],
+      }));
+    });
+  }
+  document.getElementById("semantic-answer-score-fusion-results").innerHTML = answerScoreFusionRows
+    .map((row) => `<tr><td>${escapeHtml(row.evaluation)}</td><th scope="row">${escapeHtml(row.representation)}</th><td>${row.n}</td>
+      <td>${semanticMetric(row.metrics, "macro_subtype_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "overall_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "wrong_attribution_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "false_attribution_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_attribution_retention", true)}</td>
+      <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
+      <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
+    .join("");
   const semanticChartSelect = document.getElementById("semantic-reasoning-chart-run");
   const semanticChartMetric = document.getElementById("semantic-reasoning-chart-metric");
   const semanticCharts = [
