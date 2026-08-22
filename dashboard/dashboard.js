@@ -410,9 +410,66 @@
   };
   semanticFusionSelect.addEventListener("change", renderSemanticFusions);
   renderSemanticFusions();
+  const semanticTransitions = semanticStudy.transitions;
+  document.getElementById("semantic-transition-status").textContent = semanticTransitions.status;
+  document.getElementById("semantic-transition-definition").textContent = semanticTransitions.definition;
+  const transitionSelection = semanticTransitions.selection;
+  document.getElementById("semantic-transition-selection").textContent = transitionSelection
+    ? `${transitionSelection.selected_complementary_representation.description} It is retained as a complementary wrong-focused representation, not as a replacement for the balanced primary gate.`
+    : "No transition selection is frozen.";
+  const semanticTransitionSelect = document.getElementById("semantic-transition-select");
+  const semanticTransitionOptions = [...new Map(semanticTransitions.runs.map((row) => [row.transition_id, row.transition])).entries()];
+  semanticTransitionSelect.innerHTML = semanticTransitionOptions
+    .map(([id, label]) => `<option value="${escapeHtml(id)}">${escapeHtml(label)}</option>`).join("");
+  if (semanticTransitionOptions.some(([id]) => id === "first_evidence_application_mean_to_pre_final")) {
+    semanticTransitionSelect.value = "first_evidence_application_mean_to_pre_final";
+  }
+  const renderSemanticTransitions = () => {
+    document.getElementById("semantic-transition-runs").innerHTML = semanticTransitions.runs
+      .filter((row) => row.transition_id === semanticTransitionSelect.value)
+      .map(semanticResultCells).join("");
+  };
+  semanticTransitionSelect.addEventListener("change", renderSemanticTransitions);
+  renderSemanticTransitions();
+  const transitionSelectedRows = [];
+  if (transitionSelection) {
+    const selected = transitionSelection.selected_complementary_representation;
+    const selectedDevelopment = semanticTransitions.runs.find((row) =>
+      row.component_id === selected.component &&
+      row.transition_id === "first_evidence_application_mean_to_pre_final");
+    if (selectedDevelopment) transitionSelectedRows.push({
+      label: "Initial Synthetic · meeting-grouped OOF",
+      n: selectedDevelopment.n,
+      metrics: selectedDevelopment.metrics,
+    });
+    if (semanticTransitions.real_transfer) {
+      semanticTransitions.real_transfer.metrics.layers.forEach((item) => {
+        const layer = Number(item.layer);
+        transitionSelectedRows.push({
+          label: layer === Number(selected.primary_layer)
+            ? `Real data transfer · frozen primary layer ${layer}`
+            : `Real data transfer · predeclared robustness layer ${layer}`,
+          n: semanticTransitions.real_transfer.examples.eligible,
+          metrics: item.metrics,
+        });
+      });
+    } else {
+      transitionSelectedRows.push({ label: "Real data transfer · frozen primary layer 30", n: "In progress", metrics: null });
+    }
+  }
+  document.getElementById("semantic-transition-selected-results").innerHTML = transitionSelectedRows
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${row.n}</td>
+      <td>${semanticMetric(row.metrics, "macro_subtype_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_vs_wrong_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_vs_false_attribution_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_attribution_acceptance_tpr", true)}</td>
+      <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
+      <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
+    .join("");
   const semanticChartSelect = document.getElementById("semantic-reasoning-chart-run");
   const semanticChartMetric = document.getElementById("semantic-reasoning-chart-metric");
-  const semanticCharts = [...semanticStudy.fusion_charts, ...semanticStudy.individual_charts];
+  const semanticCharts = [...semanticStudy.fusion_charts, ...semanticTransitions.charts, ...semanticStudy.individual_charts];
   semanticChartSelect.innerHTML = semanticCharts
     .map((run) => `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)}</option>`).join("");
   if (semanticCharts.some((run) => run.id === "fusion_post_attention_residual_attribution_relevant_mean_plus_pre_final")) {
