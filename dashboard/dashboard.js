@@ -521,6 +521,38 @@
       <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
       <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
     .join("");
+  const answerStudy = semanticStudy.generated_answer_study;
+  const answerSummary = answerStudy.summary;
+  document.getElementById("semantic-answer-conclusion").textContent = answerSummary
+    ? answerSummary.conclusion
+    : "Generated-answer token study is pending.";
+  document.getElementById("semantic-answer-comparison-results").innerHTML = answerSummary
+    ? answerSummary.comparison.map((row) => `<tr>
+      <th scope="row">${escapeHtml(row.anchor)}</th><td>${escapeHtml(row.component)}</td><td>${answerSummary.examples.total}</td>
+      <td>${semanticMetric(row, "macro_subtype_auroc")}</td>
+      <td>${semanticMetric(row, "overall_auroc")}</td>
+      <td>${semanticMetric(row, "wrong_attribution_auroc")}</td>
+      <td>${semanticMetric(row, "false_attribution_auroc")}</td>
+      <td>${semanticMetric(row, "correct_attribution_retention", true)}</td>
+      <td>${semanticMetric(row, "wrong_attribution_rejection", true)}</td>
+      <td>${semanticMetric(row, "false_attribution_rejection", true)}</td>
+      <td>${row.selected_layers.join(", ")}</td></tr>`).join("")
+    : "";
+  const answerRealRows = answerSummary ? [
+    ["Primary layer 18 · frozen", answerSummary.real_frozen_transfer.primary_layer_18],
+    ["Robustness layer 21", answerSummary.real_frozen_transfer.robustness_layer_21],
+    ["Robustness layer 24", answerSummary.real_frozen_transfer.robustness_layer_24],
+  ] : [];
+  document.getElementById("semantic-answer-real-results").innerHTML = answerRealRows
+    .map(([label, row]) => `<tr><th scope="row">${escapeHtml(label)}</th><td>${answerSummary.real_frozen_transfer.examples.total}</td>
+      <td>${semanticMetric(row, "macro_subtype_auroc")}</td>
+      <td>${semanticMetric(row, "overall_auroc")}</td>
+      <td>${semanticMetric(row, "wrong_attribution_auroc")}</td>
+      <td>${semanticMetric(row, "false_attribution_auroc")}</td>
+      <td>${semanticMetric(row, "correct_attribution_retention", true)}</td>
+      <td>${semanticMetric(row, "wrong_attribution_rejection", true)}</td>
+      <td>${semanticMetric(row, "false_attribution_rejection", true)}</td></tr>`)
+    .join("");
   const semanticChartSelect = document.getElementById("semantic-reasoning-chart-run");
   const semanticChartMetric = document.getElementById("semantic-reasoning-chart-metric");
   const semanticCharts = [
@@ -535,6 +567,7 @@
         false_auroc: row.false_attribution_auroc,
       })),
     }] : []),
+    ...answerStudy.charts,
     ...semanticStudy.fusion_charts,
     ...semanticTransitions.charts,
     ...componentFusions.charts,
