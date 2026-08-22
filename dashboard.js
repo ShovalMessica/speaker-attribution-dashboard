@@ -503,9 +503,38 @@
   document.getElementById("semantic-component-fusion-results").innerHTML = componentFusions.runs
     .map((row) => semanticResultCells({ ...row, component: row.fusion }))
     .join("");
+  const denseLayerStudy = semanticStudy.dense_layer_stability;
+  document.getElementById("semantic-dense-layer-conclusion").textContent = denseLayerStudy
+    ? `Layer ${denseLayerStudy.best_single_pooled_layer} is the highest single pooled point, but nested training-fold selection chose layers ${denseLayerStudy.nested_layer_selection.selected_layers_by_fold.join(", ")}. ${denseLayerStudy.decision.rationale}`
+    : "Dense layer stability study is pending.";
+  const denseLayerRows = denseLayerStudy ? [
+    ...denseLayerStudy.layers.map((row) => ({ label: `Layer ${row.layer}`, metrics: row })),
+    { label: "Fully nested layer selection", metrics: denseLayerStudy.nested_layer_selection },
+  ] : [];
+  document.getElementById("semantic-dense-layer-results").innerHTML = denseLayerRows
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${denseLayerStudy.examples.total}</td>
+      <td>${semanticMetric(row.metrics, "macro_subtype_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "overall_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "wrong_attribution_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "false_attribution_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_attribution_retention", true)}</td>
+      <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
+      <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
+    .join("");
   const semanticChartSelect = document.getElementById("semantic-reasoning-chart-run");
   const semanticChartMetric = document.getElementById("semantic-reasoning-chart-metric");
   const semanticCharts = [
+    ...(denseLayerStudy ? [{
+      id: "dense_post_attention_residual_attribution_relevant_mean_plus_pre_final_24_30",
+      label: "Selected semantic representation · dense layers 24–30",
+      layers: denseLayerStudy.layers.map((row) => ({
+        layer: row.layer,
+        macro_auroc: row.macro_subtype_auroc,
+        auroc: row.overall_auroc,
+        wrong_auroc: row.wrong_attribution_auroc,
+        false_auroc: row.false_attribution_auroc,
+      })),
+    }] : []),
     ...semanticStudy.fusion_charts,
     ...semanticTransitions.charts,
     ...componentFusions.charts,
@@ -514,7 +543,9 @@
   semanticChartSelect.innerHTML = semanticCharts
     .map((run) => `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)}</option>`).join("");
   if (semanticCharts.some((run) => run.id === "fusion_post_attention_residual_attribution_relevant_mean_plus_pre_final")) {
-    semanticChartSelect.value = "fusion_post_attention_residual_attribution_relevant_mean_plus_pre_final";
+    semanticChartSelect.value = denseLayerStudy
+      ? "dense_post_attention_residual_attribution_relevant_mean_plus_pre_final_24_30"
+      : "fusion_post_attention_residual_attribution_relevant_mean_plus_pre_final";
   }
   const renderSemanticChart = () => {
     const run = semanticCharts.find((item) => item.id === semanticChartSelect.value) || semanticCharts[0];
