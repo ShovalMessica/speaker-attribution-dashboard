@@ -467,6 +467,37 @@
       <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
       <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
     .join("");
+  const scoreFusion = semanticStudy.score_fusion;
+  document.getElementById("semantic-score-fusion-conclusion").textContent = scoreFusion
+    ? scoreFusion.conclusion
+    : "The controlled fusion is pending.";
+  const scoreFusionRows = [];
+  if (scoreFusion) {
+    const sections = [
+      ["Initial Synthetic · meeting-grouped OOF", scoreFusion.exact_common_scope.initial_synthetic.total, scoreFusion.initial_synthetic_grouped_oof],
+      ["Real data · frozen transfer", scoreFusion.exact_common_scope.real_data.total, scoreFusion.real_frozen_transfer],
+    ];
+    const representations = [
+      ["Balanced late-decision input", "balanced_input_layer_27"],
+      ["Evidence→decision transition input", "transition_input_layer_30"],
+      ["Calibrated score fusion", "calibrated_score_fusion"],
+    ];
+    sections.forEach(([evaluation, n, metricsByRepresentation]) => {
+      representations.forEach(([representation, key]) => scoreFusionRows.push({
+        evaluation, representation, n, metrics: metricsByRepresentation[key],
+      }));
+    });
+  }
+  document.getElementById("semantic-score-fusion-results").innerHTML = scoreFusionRows
+    .map((row) => `<tr><td>${escapeHtml(row.evaluation)}</td><th scope="row">${escapeHtml(row.representation)}</th><td>${row.n}</td>
+      <td>${semanticMetric(row.metrics, "macro_subtype_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "overall_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "wrong_attribution_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "false_attribution_auroc")}</td>
+      <td>${semanticMetric(row.metrics, "correct_attribution_retention", true)}</td>
+      <td>${semanticMetric(row.metrics, "wrong_attribution_rejection", true)}</td>
+      <td>${semanticMetric(row.metrics, "false_attribution_rejection", true)}</td></tr>`)
+    .join("");
   const semanticChartSelect = document.getElementById("semantic-reasoning-chart-run");
   const semanticChartMetric = document.getElementById("semantic-reasoning-chart-metric");
   const semanticCharts = [...semanticStudy.fusion_charts, ...semanticTransitions.charts, ...semanticStudy.individual_charts];
