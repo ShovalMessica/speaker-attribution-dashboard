@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Speaker Attribution Setup Evaluation</title>
-  <link rel="stylesheet" href="dashboard.css?v=20260823-weekly-placeholders">
+  <link rel="stylesheet" href="dashboard.css?v=20260823-weekly-tpr-fpr">
 </head>
 <body>
   <main>
@@ -1261,7 +1261,16 @@ Output only the candidate ID after `FINAL:`, never the participant name.</code><
       </div>
       <div class="weekly-aug-placeholders">
         <section><h3>Data distribution</h3></section>
-        <section><h3>TPR–FPR</h3></section>
+        <section aria-labelledby="weekly-aug-tpr-fpr-heading">
+          <h3 id="weekly-aug-tpr-fpr-heading">TPR–FPR</h3>
+          <figure class="weekly-aug-figure">
+            <img
+              src="assets/real291_exp70_tpr_fpr.png"
+              alt="Real291 gate curves comparing the model-confidence threshold with the Experiment 70 pre-FINAL pre-attention layer-24 gate"
+              loading="lazy"
+            >
+          </figure>
+        </section>
         <section><h3>Trend across token positions</h3></section>
         <section><h3>Patterns of mistakes made by the model</h3></section>
       </div>

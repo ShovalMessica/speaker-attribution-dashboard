@@ -646,6 +646,17 @@ tbody tr:hover { background: #f8fafb; }
   font-size: 18px;
 }
 
+.weekly-aug-figure {
+  width: min(1300px, calc(100vw - 40px));
+  margin: 10px 0 0;
+}
+
+.weekly-aug-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .weekly-simple-header { margin: 4px 0 22px; }
 .weekly-simple-header h2 { margin: 0 0 4px; font-size: 27px; }
 .weekly-simple-header p { margin: 0; color: var(--muted); }
