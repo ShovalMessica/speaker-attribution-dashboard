@@ -741,6 +741,30 @@
   document.getElementById("corrected-transition-next").textContent = transitionStudy.next_hypothesis
     ? `Next hypothesis: ${transitionStudy.next_hypothesis}`
     : "";
+  const traceAudit = semanticStudy.corrected_trace_subtype_audit;
+  document.getElementById("corrected-trace-audit-status").textContent = `Status: ${traceAudit.status.replaceAll("_", " ")}.`;
+  document.getElementById("corrected-trace-audit-hypothesis").textContent = `Hypothesis: ${traceAudit.hypothesis}`;
+  const traceGateLabels = {
+    exp69_wrong_primary_residual_l27: "Experiment 69 · wrong-primary residual L27",
+    exp69_false_primary_residual_l21: "Experiment 69 · false-primary residual L21",
+    exp70_pre_attention_l24: "Experiment 70 · pre-attention L24",
+  };
+  const traceCell = (bucket) => bucket
+    ? `${bucket.rejected} / ${bucket.n} rejected (${pct(bucket.rejection_rate)}); AUROC ${decimal(bucket.correct_vs_bucket_auroc)}`
+    : "—";
+  const traceRows = traceAudit.results.flatMap((row) => [
+    { gate: row.gate, evaluation: "Non-Real grouped OOF", buckets: row.non_real_oof },
+    { gate: row.gate, evaluation: "Frozen Real291 transfer", buckets: row.real291 },
+  ]);
+  document.getElementById("corrected-trace-audit-results").innerHTML = traceRows
+    .map((row) => `<tr><th scope="row">${escapeHtml(traceGateLabels[row.gate] || row.gate)}</th>
+      <td>${escapeHtml(row.evaluation)}</td><td>${traceCell(row.buckets.clean_natural)}</td>
+      <td>${traceCell(row.buckets.forced_active)}</td><td>${traceCell(row.buckets.unsupported_final)}</td></tr>`).join("");
+  document.getElementById("corrected-trace-audit-finding").textContent = traceAudit.finding;
+  document.getElementById("corrected-trace-audit-interpretation").textContent = traceAudit.interpretation;
+  document.getElementById("corrected-trace-audit-limitations").textContent = `Limitation: ${traceAudit.limitations}`;
+  document.getElementById("corrected-trace-audit-decision").textContent = `Decision: ${traceAudit.decision}`;
+  document.getElementById("corrected-trace-audit-next").textContent = `Next hypothesis: ${traceAudit.next_hypothesis}`;
   const fixedReference = semanticStudy.fixed_1242_reference;
   document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
   document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
