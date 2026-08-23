@@ -824,6 +824,21 @@
   document.getElementById("corrected-transfer-mismatch-real-use").textContent = transferMismatch.real291_use;
   document.getElementById("corrected-transfer-mismatch-decision").textContent = `Decision: ${transferMismatch.decision}`;
   document.getElementById("corrected-transfer-mismatch-limitations").textContent = `Limitation: ${transferMismatch.limitations}`;
+  const mediasumYield = semanticStudy.corrected_mediasum_yield_study;
+  document.getElementById("corrected-mediasum-yield-status").textContent =
+    `Status: ${mediasumYield.status.replaceAll("_", " ")}. ${mediasumYield.scope.examples} evaluated MediaSum evidence examples.`;
+  document.getElementById("corrected-mediasum-yield-hypothesis").textContent =
+    `Hypothesis: ${mediasumYield.hypothesis}`;
+  document.getElementById("corrected-mediasum-yield-results").innerHTML = mediasumYield.comparison
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.stratum)}</th><td>${row.n}</td>
+      <td>${row.raw_wrong} (${pct(row.raw_wrong_rate)})</td>
+      <td>${row.clean_natural} (${pct(row.clean_natural_rate)})</td>
+      <td>${row.forced_active} (${pct(row.forced_active_rate)})</td>
+      <td>${row.unsupported}</td></tr>`).join("");
+  document.getElementById("corrected-mediasum-yield-finding").textContent = mediasumYield.finding;
+  document.getElementById("corrected-mediasum-yield-decision").textContent = `Decision: ${mediasumYield.decision}`;
+  document.getElementById("corrected-mediasum-yield-next").textContent = `Next hypothesis: ${mediasumYield.next_hypothesis}`;
+  document.getElementById("corrected-mediasum-yield-limitations").textContent = `Limitation: ${mediasumYield.limitations}`;
   const fixedReference = semanticStudy.fixed_1242_reference;
   document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
   document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
