@@ -894,6 +894,35 @@
   document.getElementById("corrected-mediasum-ablation-finding").textContent = mediasumAblation.finding;
   document.getElementById("corrected-mediasum-ablation-conclusion").textContent = mediasumAblation.conclusion;
   document.getElementById("corrected-mediasum-ablation-next").textContent = `Next: ${mediasumAblation.next_step}`;
+  const layer21Write = semanticStudy.corrected_layer21_write_path_study;
+  document.getElementById("corrected-layer21-write-status").textContent =
+    `Status: ${layer21Write.status.replaceAll("_", " ")}.`;
+  document.getElementById("corrected-layer21-write-hypothesis").textContent =
+    `Hypothesis: ${layer21Write.hypothesis}`;
+  document.getElementById("corrected-layer21-write-scope").textContent =
+    `${layer21Write.protocol.training} Real291 is used only as frozen transfer evidence; the common comparison retains 107/118 correct attributions (90.7%).`;
+  const layer21Labels = {
+    pre_attention_norm: "Pre-attention norm",
+    attention_output: "Attention output",
+    post_attention_residual: "Post-attention residual",
+    pre_mlp_norm: "Pre-MLP norm",
+    block_delta: "Full block delta",
+  };
+  const layer21Rows = [
+    ...layer21Write.non_real.map((metrics) => ["Non-Real grouped OOF", metrics]),
+    ...layer21Write.real_common_retention.map((metrics) => ["Real291 · common 90.7% retention", metrics]),
+  ];
+  document.getElementById("corrected-layer21-write-results").innerHTML = layer21Rows
+    .map(([evaluation, metrics]) => `<tr><th scope="row">${escapeHtml(evaluation)}</th>
+      <td>${escapeHtml(layer21Labels[metrics.component] || metrics.component)}</td>
+      <td>${pct(metrics.correct_retention)}</td>
+      <td>${pct(metrics.wrong_attribution_rejection)}</td>
+      <td>${pct(metrics.false_attribution_rejection)}</td>
+      <td>${decimal(metrics.overall_auroc)}</td></tr>`).join("");
+  document.getElementById("corrected-layer21-write-finding").textContent = layer21Write.finding;
+  document.getElementById("corrected-layer21-write-interpretation").textContent = layer21Write.interpretation;
+  document.getElementById("corrected-layer21-write-decision").textContent = `Decision: ${layer21Write.decision}`;
+  document.getElementById("corrected-layer21-write-next").textContent = `Next: ${layer21Write.next_step}`;
   document.getElementById("corrected-mediasum-mechanism-next").textContent = `Next hypothesis: ${mediasumMechanisms.next_hypothesis}`;
   document.getElementById("corrected-mediasum-mechanism-limitations").textContent = `Limitation: ${mediasumMechanisms.limitations}`;
   const fixedReference = semanticStudy.fixed_1242_reference;
