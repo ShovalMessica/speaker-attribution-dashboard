@@ -849,6 +849,27 @@
       <td>${row.natural}</td><td>${row.forced_active}</td><td>${escapeHtml(row.description)}</td></tr>`).join("");
   document.getElementById("corrected-mediasum-mechanism-finding").textContent = mediasumMechanisms.finding;
   document.getElementById("corrected-mediasum-mechanism-decision").textContent = `Decision: ${mediasumMechanisms.decision}`;
+  const outputMargin = semanticStudy.corrected_output_margin_study;
+  document.getElementById("corrected-output-margin-status").textContent =
+    `Status: ${outputMargin.status.replaceAll("_", " ")}.`;
+  document.getElementById("corrected-output-margin-hypothesis").textContent =
+    `Hypothesis: ${outputMargin.hypothesis}`;
+  document.getElementById("corrected-output-margin-scope").textContent =
+    `${outputMargin.scope.development} Real291 is frozen transfer evidence and fits nothing.`;
+  const outputMarginRows = [
+    ["Non-Real grouped OOF", "Experiment 70 · pre-attention L24", outputMargin.comparison.reference_experiment_70.development],
+    ["Non-Real grouped OOF", "Experiment 79 · + output margin", outputMargin.comparison.margin_augmented.development],
+    ["Real291 frozen transfer", "Experiment 70 · pre-attention L24", outputMargin.comparison.reference_experiment_70.real291],
+    ["Real291 frozen transfer", "Experiment 79 · + output margin", outputMargin.comparison.margin_augmented.real291],
+  ];
+  document.getElementById("corrected-output-margin-results").innerHTML = outputMarginRows
+    .map(([evaluation, gate, metrics]) => `<tr><th scope="row">${escapeHtml(evaluation)}</th>
+      <td>${escapeHtml(gate)}</td><td>${pct(metrics.correct_retention)}</td>
+      <td>${pct(metrics.wrong_attribution_rejection)}</td>
+      <td>${pct(metrics.false_attribution_rejection)}</td>
+      <td>${decimal(metrics.overall_auroc)}</td></tr>`).join("");
+  document.getElementById("corrected-output-margin-conclusion").textContent = outputMargin.conclusion;
+  document.getElementById("corrected-output-margin-next").textContent = `Next: ${outputMargin.next_step}`;
   document.getElementById("corrected-mediasum-mechanism-next").textContent = `Next hypothesis: ${mediasumMechanisms.next_hypothesis}`;
   document.getElementById("corrected-mediasum-mechanism-limitations").textContent = `Limitation: ${mediasumMechanisms.limitations}`;
   const fixedReference = semanticStudy.fixed_1242_reference;
