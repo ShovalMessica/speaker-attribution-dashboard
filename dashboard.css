@@ -614,6 +614,26 @@ tbody tr:hover { background: #f8fafb; }
   font-weight: 700;
 }
 
+.weekly-source-notes {
+  margin: 12px 0 0;
+  padding-left: 22px;
+  color: #000;
+  font-size: 14px;
+}
+
+.weekly-source-notes > li + li {
+  margin-top: 7px;
+}
+
+.weekly-source-notes ul {
+  margin: 3px 0 0;
+  padding-left: 20px;
+}
+
+.weekly-source-notes ul li + li {
+  margin-top: 2px;
+}
+
 .weekly-data-explanation {
   margin-top: 12px;
   color: #000;

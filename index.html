@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Speaker Attribution Setup Evaluation</title>
-  <link rel="stylesheet" href="dashboard.css?v=20260823-weekly-gate-comparison">
+  <link rel="stylesheet" href="dashboard.css?v=20260823-weekly-source-notes">
 </head>
 <body>
   <main>
@@ -1250,6 +1250,17 @@ Output only the candidate ID after `FINAL:`, never the participant name.</code><
           </tr>
         </tbody>
       </table>
+      <ol class="weekly-source-notes">
+        <li>
+          <strong>Hard Synthetic</strong> — deliberately constructed harder cases with distractors and ambiguity, including:
+          <ul>
+            <li>the target mentioning another candidate;</li>
+            <li>many other participant names appearing in the same context;</li>
+            <li>multiple attribution cues for different speakers or candidates, requiring the model to determine which evidence belongs to the target.</li>
+          </ul>
+        </li>
+        <li><strong>MediaSum-derived</strong> — examples mined from natural broadcast conversations, such as interviews and talk-show-style dialogue.</li>
+      </ol>
       <div class="weekly-data-explanation">
         <p><strong>Synthetic training combines the original dataset, a harder synthetic cohort, and MediaSum-derived examples.</strong></p>
         <p><strong>The original and hard synthetic cohorts include both evidence and no-evidence cases. MediaSum contains evidence-present cases only, so it contributes no false-attribution examples.</strong></p>
