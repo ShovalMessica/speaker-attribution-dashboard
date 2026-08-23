@@ -870,6 +870,30 @@
       <td>${decimal(metrics.overall_auroc)}</td></tr>`).join("");
   document.getElementById("corrected-output-margin-conclusion").textContent = outputMargin.conclusion;
   document.getElementById("corrected-output-margin-next").textContent = `Next: ${outputMargin.next_step}`;
+  const mediasumAblation = semanticStudy.corrected_mediasum_ablation_study;
+  document.getElementById("corrected-mediasum-ablation-status").textContent =
+    `Status: ${mediasumAblation.status.replaceAll("_", " ")}.`;
+  document.getElementById("corrected-mediasum-ablation-hypothesis").textContent =
+    `Hypothesis: ${mediasumAblation.hypothesis}`;
+  document.getElementById("corrected-mediasum-ablation-scope").textContent =
+    "This is an explanatory source ablation, not a replacement gate. The development populations differ; Real291 at identical 90.7% correct retention is the common transfer comparison.";
+  const ablationDevelopment = mediasumAblation.development;
+  const ablationReal = mediasumAblation.real_common_retention;
+  const mediasumAblationRows = [
+    ["Non-Real grouped OOF · n=1,242", "All sources", ablationDevelopment.all_1242_reference],
+    ["Non-Real grouped OOF · n=1,051", "Initial + Hard Synthetic only", ablationDevelopment.synthetic_only_ablation],
+    ["Real291 · common 90.7% retention", "All sources", {correct_retention: ablationReal.correct_retention, ...ablationReal.all_1242_reference}],
+    ["Real291 · common 90.7% retention", "Initial + Hard Synthetic only", {correct_retention: ablationReal.correct_retention, ...ablationReal.synthetic_only_ablation}],
+  ];
+  document.getElementById("corrected-mediasum-ablation-results").innerHTML = mediasumAblationRows
+    .map(([evaluation, authority, metrics]) => `<tr><th scope="row">${escapeHtml(evaluation)}</th>
+      <td>${escapeHtml(authority)}</td><td>${pct(metrics.correct_retention)}</td>
+      <td>${pct(metrics.wrong_attribution_rejection)}</td>
+      <td>${pct(metrics.false_attribution_rejection)}</td>
+      <td>${decimal(metrics.overall_auroc)}</td></tr>`).join("");
+  document.getElementById("corrected-mediasum-ablation-finding").textContent = mediasumAblation.finding;
+  document.getElementById("corrected-mediasum-ablation-conclusion").textContent = mediasumAblation.conclusion;
+  document.getElementById("corrected-mediasum-ablation-next").textContent = `Next: ${mediasumAblation.next_step}`;
   document.getElementById("corrected-mediasum-mechanism-next").textContent = `Next hypothesis: ${mediasumMechanisms.next_hypothesis}`;
   document.getElementById("corrected-mediasum-mechanism-limitations").textContent = `Limitation: ${mediasumMechanisms.limitations}`;
   const fixedReference = semanticStudy.fixed_1242_reference;
