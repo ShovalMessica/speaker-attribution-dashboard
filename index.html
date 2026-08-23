@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Speaker Attribution Setup Evaluation</title>
-  <link rel="stylesheet" href="dashboard.css?v=20260823-weekly-tpr-fpr">
+  <link rel="stylesheet" href="dashboard.css?v=20260823-weekly-gate-comparison">
 </head>
 <body>
   <main>
@@ -1270,6 +1270,25 @@ Output only the candidate ID after `FINAL:`, never the participant name.</code><
               loading="lazy"
             >
           </figure>
+          <div class="weekly-gate-comparison" dir="ltr">
+            <div>
+              <h4>NER @ ~90% TPR</h4>
+              <ul>
+                <li>Output probability: <strong>~55.6% FPR</strong></li>
+                <li>MLP gate: <strong>~26.7% FPR</strong></li>
+                <li>Best attention-pattern gate: <strong>~7.5% FPR</strong></li>
+              </ul>
+            </div>
+            <div>
+              <h4>Speaker Attribution @ 90.7% TPR on Real</h4>
+              <ul>
+                <li>Model confidence: <strong>~80.3% FPR</strong></li>
+                <li>Pre-FINAL residual: <strong>~26.4% FPR</strong></li>
+                <li>Generated-answer residual: <strong>~19.1% FPR</strong></li>
+                <li>Best current pre-attention L24 gate: <strong>~16.8% FPR</strong></li>
+              </ul>
+            </div>
+          </div>
         </section>
         <section><h3>Trend across token positions</h3></section>
         <section><h3>Patterns of mistakes made by the model</h3></section>
