@@ -291,6 +291,13 @@
   document.getElementById("coarse-split-stratification").textContent = coarseProbing.split.stratification;
   document.getElementById("coarse-split-note").textContent = coarseProbing.split.note;
   const corrected = coarseProbing.corrected_protocol;
+  const validityRegistry = corrected.experiment_validity;
+  document.getElementById("experiment-validity-rows").innerHTML = validityRegistry.classifications
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.experiment_ids)}</th>
+      <td>${escapeHtml(row.status.replaceAll("_", " "))}</td>
+      <td>${escapeHtml(row.reason)}</td><td>${escapeHtml(row.claim_policy)}</td></tr>`).join("");
+  document.getElementById("experiment-validity-pending").textContent =
+    `Still pending under the corrected protocol: ${validityRegistry.important_family_still_pending.family}. ${validityRegistry.important_family_still_pending.consequence}`;
   document.getElementById("corrected-protocol-headline").textContent = corrected.headline;
   document.getElementById("corrected-protocol-rules").innerHTML = corrected.protocol
     .map((rule) => `<li>${escapeHtml(rule)}</li>`).join("");
@@ -795,6 +802,28 @@
   document.getElementById("corrected-trace-weighting-finding").textContent = traceWeighting.finding;
   document.getElementById("corrected-trace-weighting-decision").textContent = `Decision: ${traceWeighting.decision}`;
   document.getElementById("corrected-trace-weighting-next").textContent = `Next hypothesis: ${traceWeighting.next_hypothesis}`;
+  const transferMismatch = semanticStudy.corrected_transfer_mismatch_study;
+  document.getElementById("corrected-transfer-mismatch-status").textContent =
+    `Status: ${transferMismatch.status.replaceAll("_", " ")}. Scope: ${transferMismatch.scope.non_real_usable_wrong} non-Real usable wrongs and ${transferMismatch.scope.real291_usable_wrong} Real291 usable wrongs.`;
+  document.getElementById("corrected-transfer-mismatch-hypothesis").textContent =
+    `Hypothesis: ${transferMismatch.hypothesis}`;
+  const rateFeatures = new Set([
+    "Target says another candidate name",
+    "Dense candidate-name context",
+    "Immediate cue-response",
+  ]);
+  const mismatchValue = (feature, value) => rateFeatures.has(feature) ? pct(value) : decimal(value);
+  document.getElementById("corrected-transfer-mismatch-results").innerHTML = transferMismatch.comparison
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.feature)}</th>
+      <td>${mismatchValue(row.feature, row.non_real_usable_wrong)}</td>
+      <td>${mismatchValue(row.feature, row.real291_usable_wrong)}</td>
+      <td>${mismatchValue(row.feature, row.non_real_correct)}</td>
+      <td>${mismatchValue(row.feature, row.real291_correct)}</td></tr>`).join("");
+  document.getElementById("corrected-transfer-mismatch-finding").textContent = transferMismatch.finding;
+  document.getElementById("corrected-transfer-mismatch-interpretation").textContent = transferMismatch.interpretation;
+  document.getElementById("corrected-transfer-mismatch-real-use").textContent = transferMismatch.real291_use;
+  document.getElementById("corrected-transfer-mismatch-decision").textContent = `Decision: ${transferMismatch.decision}`;
+  document.getElementById("corrected-transfer-mismatch-limitations").textContent = `Limitation: ${transferMismatch.limitations}`;
   const fixedReference = semanticStudy.fixed_1242_reference;
   document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
   document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
