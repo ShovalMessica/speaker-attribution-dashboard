@@ -605,8 +605,8 @@ tbody tr:hover { background: #f8fafb; }
   font-weight: 650;
 }
 
-.weekly-data-table td:nth-child(5),
-.weekly-data-table td:nth-child(6) {
+.weekly-data-table td:nth-child(1),
+.weekly-data-table td:nth-child(2) {
   font-weight: 500;
 }
 
