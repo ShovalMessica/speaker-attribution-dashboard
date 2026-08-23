@@ -716,6 +716,31 @@
   document.getElementById("corrected-late-decision-conclusion").textContent = lateDecisionStudy.conclusion
     ? `${lateDecisionStudy.conclusion.timing} ${lateDecisionStudy.conclusion.deployable_component} ${lateDecisionStudy.conclusion.comparison_to_reference}`
     : "Pending.";
+  const transitionStudy = semanticStudy.corrected_transition_study;
+  document.getElementById("corrected-transition-status").textContent = `Status: ${transitionStudy.status.replaceAll("_", " ")}.`;
+  document.getElementById("corrected-transition-hypothesis").textContent = `Hypothesis: ${transitionStudy.hypothesis}`;
+  document.getElementById("corrected-transition-scope").textContent = transitionStudy.scope;
+  const transitionRows = [
+    ...transitionStudy.non_real.map((row) => ({ ...row, evaluation: "Non-Real grouped OOF" })),
+    ...transitionStudy.real.map((row) => ({ ...row, evaluation: "Frozen Real291 transfer" })),
+  ];
+  document.getElementById("corrected-transition-results").innerHTML = transitionRows.length
+    ? transitionRows.map((row) => `<tr><th scope="row">${escapeHtml(row.evaluation)}</th><td>${row.layer}</td>
+      <td>${row.layer === transitionStudy.selected_layer ? "Synthetic-selected" : "Predeclared robustness"}</td>
+      <td>${pct(row.correct_retention)}</td><td>${pct(row.wrong_rejection)}</td>
+      <td>${pct(row.false_rejection)}</td><td>${decimal(row.overall_auroc)}</td>
+      <td>${decimal(row.wrong_auroc)}</td><td>${decimal(row.false_auroc)}</td></tr>`).join("")
+    : `<tr><td colspan="9">Pending</td></tr>`;
+  document.getElementById("corrected-transition-common-retention").innerHTML = transitionStudy.real_common_retention.length
+    ? transitionStudy.real_common_retention.map((row) => `<tr><th scope="row">${row.layer}</th>
+      <td>${pct(row.correct_retention)}</td><td>${pct(row.wrong_rejection)}</td>
+      <td>${pct(row.false_rejection)}</td></tr>`).join("")
+    : `<tr><td colspan="4">Pending</td></tr>`;
+  document.getElementById("corrected-transition-comparison").textContent = transitionStudy.comparison || "";
+  document.getElementById("corrected-transition-conclusion").textContent = transitionStudy.conclusion || "Pending.";
+  document.getElementById("corrected-transition-next").textContent = transitionStudy.next_hypothesis
+    ? `Next hypothesis: ${transitionStudy.next_hypothesis}`
+    : "";
   const fixedReference = semanticStudy.fixed_1242_reference;
   document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
   document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
