@@ -1295,16 +1295,16 @@ Output only the candidate ID after `FINAL:`, never the participant name.</code><
               <h4>NER @ ~90% TPR</h4>
               <ul>
                 <li>Output probability: <strong>~55.6% FPR</strong></li>
-                <li>MLP gate: <strong>~26.7% FPR</strong></li>
-                <li>Best attention-pattern gate: <strong>~7.5% FPR</strong></li>
+                <li>Last-prompt token · MLP output · L28: <strong>~26.7% FPR</strong></li>
+                <li>Attention-pattern gate · 43 heads, mainly L17–22: <strong>~7.5% FPR</strong></li>
               </ul>
             </div>
             <div>
               <h4>Speaker Attribution @ 90.7% TPR on Real</h4>
               <ul>
                 <li>Model confidence: <strong>~80.3% FPR</strong></li>
-                <li>Generated-answer residual: <strong>~19.1% FPR</strong></li>
-                <li>Best current pre-attention L24 gate: <strong>~16.8% FPR</strong></li>
+                <li>Answer token · Residual stream · L21: <strong>~19.1% FPR</strong></li>
+                <li>Pre-FINAL “:” token · Pre-attention state · L24: <strong>~16.8% FPR</strong></li>
               </ul>
             </div>
           </div>
