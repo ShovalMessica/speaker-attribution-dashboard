@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Speaker Attribution Setup Evaluation</title>
-  <link rel="stylesheet" href="dashboard.css?v=20260823-weekly-source-notes">
+  <link rel="stylesheet" href="dashboard.css?v=20260823-weekly-network-signal">
 </head>
 <body>
   <main>
@@ -1308,6 +1308,15 @@ Output only the candidate ID after `FINAL:`, never the participant name.</code><
               </ul>
             </div>
           </div>
+        </section>
+        <section aria-labelledby="weekly-aug-network-signal-heading">
+          <h3 id="weekly-aug-network-signal-heading">Where in the network is the signal?</h3>
+          <ul class="weekly-network-findings" dir="ltr">
+            <li>The strongest signal is concentrated around <strong>layers 21–24</strong>, rather than increasing monotonically with depth.</li>
+            <li>At Layer 21, the <strong>attention output</strong> is stronger than the state entering attention.</li>
+            <li>After the attention output is added back into the residual stream, part of this gain is lost.</li>
+            <li>This motivates the next step: <strong>identify which Layer-21 attention heads carry the reliability signal.</strong></li>
+          </ul>
         </section>
         <section><h3>Trend across token positions</h3></section>
         <section><h3>Patterns of mistakes made by the model</h3></section>
