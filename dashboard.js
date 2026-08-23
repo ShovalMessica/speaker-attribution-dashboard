@@ -923,6 +923,27 @@
   document.getElementById("corrected-layer21-write-interpretation").textContent = layer21Write.interpretation;
   document.getElementById("corrected-layer21-write-decision").textContent = `Decision: ${layer21Write.decision}`;
   document.getElementById("corrected-layer21-write-next").textContent = `Next: ${layer21Write.next_step}`;
+  const attentionHeads = semanticStudy.corrected_attention_head_study;
+  document.getElementById("corrected-attention-head-status").textContent =
+    `Status: ${attentionHeads.status.replaceAll("_", " ")}. No activation extraction or probe fitting has started.`;
+  document.getElementById("corrected-attention-head-observation").textContent =
+    `Observation: ${attentionHeads.observation}`;
+  document.getElementById("corrected-attention-head-hypothesis").textContent =
+    `Hypothesis: ${attentionHeads.hypothesis}`;
+  document.getElementById("corrected-attention-head-scope").textContent =
+    `Scope: layer ${attentionHeads.scope.layer}, ${attentionHeads.scope.heads} query heads, immediate pre-answer token; ${attentionHeads.scope.training_proposals.toLocaleString()} non-Real development proposals and ${attentionHeads.scope.real_proposals} Real291 transfer proposals. Wrong and false rejection remain separate.`;
+  document.getElementById("corrected-attention-head-results").innerHTML = attentionHeads.results
+    ? attentionHeads.results.heads.map((row) => `<tr><th scope="row">${row.head}</th>
+      <td>${pct(row.non_real_oof.correct_retention)}</td>
+      <td>${pct(row.non_real_oof.wrong_attribution_rejection)}</td>
+      <td>${pct(row.non_real_oof.false_attribution_rejection)}</td>
+      <td>${pct(row.real_frozen_threshold.correct_retention)}</td>
+      <td>${pct(row.real_frozen_threshold.wrong_attribution_rejection)}</td>
+      <td>${pct(row.real_frozen_threshold.false_attribution_rejection)}</td></tr>`).join("")
+    : '<tr><td colspan="7">Awaiting explicit activation-extraction and probe-training approval.</td></tr>';
+  document.getElementById("corrected-attention-head-decision").textContent = attentionHeads.results
+    ? attentionHeads.results.claim_scope
+    : `Decision rule: ${attentionHeads.decision_rule.advance}`;
   document.getElementById("corrected-mediasum-mechanism-next").textContent = `Next hypothesis: ${mediasumMechanisms.next_hypothesis}`;
   document.getElementById("corrected-mediasum-mechanism-limitations").textContent = `Limitation: ${mediasumMechanisms.limitations}`;
   const fixedReference = semanticStudy.fixed_1242_reference;
