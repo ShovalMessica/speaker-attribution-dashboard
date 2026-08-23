@@ -575,12 +575,12 @@ tbody tr:hover { background: #f8fafb; }
 
 .weekly-aug-page {
   max-width: 920px;
-  margin: 0 auto 24px;
+  margin: 0 0 24px;
 }
 
 .weekly-aug-page h2 {
   margin: 0 0 8px;
-  text-align: center;
+  text-align: left;
   font-size: 23px;
   line-height: 1.2;
 }
@@ -629,6 +629,21 @@ tbody tr:hover { background: #f8fafb; }
   flex-wrap: wrap;
   gap: 5px 22px;
   margin-top: 10px;
+}
+
+.weekly-aug-placeholders {
+  margin-top: 24px;
+}
+
+.weekly-aug-placeholders section {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.weekly-aug-placeholders h3 {
+  margin: 0;
+  color: #000;
+  font-size: 18px;
 }
 
 .weekly-simple-header { margin: 4px 0 22px; }
