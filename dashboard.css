@@ -614,6 +614,23 @@ tbody tr:hover { background: #f8fafb; }
   font-weight: 700;
 }
 
+.weekly-data-explanation {
+  margin-top: 12px;
+  color: #000;
+  font-size: 14px;
+}
+
+.weekly-data-explanation p {
+  margin: 0 0 4px;
+}
+
+.weekly-gate-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 22px;
+  margin-top: 10px;
+}
+
 .weekly-simple-header { margin: 4px 0 22px; }
 .weekly-simple-header h2 { margin: 0 0 4px; font-size: 27px; }
 .weekly-simple-header p { margin: 0; color: var(--muted); }

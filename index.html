@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Speaker Attribution Setup Evaluation</title>
-  <link rel="stylesheet" href="dashboard.css?v=20260823-weekly-data-table">
+  <link rel="stylesheet" href="dashboard.css?v=20260823-weekly-gate-labels">
 </head>
 <body>
   <main>
@@ -1250,6 +1250,15 @@ Output only the candidate ID after `FINAL:`, never the participant name.</code><
           </tr>
         </tbody>
       </table>
+      <div class="weekly-data-explanation">
+        <p><strong>Synthetic training combines the original dataset, a harder synthetic cohort, and MediaSum-derived examples.</strong></p>
+        <p><strong>The original and hard synthetic cohorts include both evidence and no-evidence cases. MediaSum contains evidence-present cases only, so it contributes no false-attribution examples.</strong></p>
+        <div class="weekly-gate-labels">
+          <strong>Gate labels:</strong>
+          <span><strong>1</strong> — Correct attribution</span>
+          <span><strong>0</strong> — Wrong attribution or false attribution</span>
+        </div>
+      </div>
     </section>
 
   </main>
