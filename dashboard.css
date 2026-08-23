@@ -667,7 +667,7 @@ tbody tr:hover { background: #f8fafb; }
 }
 
 .weekly-aug-figure {
-  width: min(1300px, calc(100vw - 40px));
+  width: min(900px, 100%);
   margin: 10px 0 0;
 }
 
