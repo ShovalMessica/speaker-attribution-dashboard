@@ -765,6 +765,36 @@
   document.getElementById("corrected-trace-audit-limitations").textContent = `Limitation: ${traceAudit.limitations}`;
   document.getElementById("corrected-trace-audit-decision").textContent = `Decision: ${traceAudit.decision}`;
   document.getElementById("corrected-trace-audit-next").textContent = `Next hypothesis: ${traceAudit.next_hypothesis}`;
+  const traceWeighting = semanticStudy.corrected_trace_weighting_study;
+  document.getElementById("corrected-trace-weighting-status").textContent = `Status: ${traceWeighting.status.replaceAll("_", " ")}.`;
+  document.getElementById("corrected-trace-weighting-hypothesis").textContent = `Hypothesis: ${traceWeighting.hypothesis}`;
+  document.getElementById("corrected-trace-weighting-scope").textContent = traceWeighting.scope;
+  const nonRealReference = traceWeighting.non_real.experiment_70_reference;
+  const nonRealWeighted = traceWeighting.non_real.experiment_75_trace_aware;
+  const realReference = traceWeighting.real.experiment_70_common_90pct_reference;
+  const realWeighted = traceWeighting.real.common_90pct_retention_diagnostic;
+  const weightingRows = [
+    { evaluation: "Non-Real grouped OOF", gate: "Experiment 70 · standard weights", values: nonRealReference },
+    { evaluation: "Non-Real grouped OOF", gate: "Experiment 75 · trace-aware weights", values: nonRealWeighted },
+    { evaluation: "Real291 · common high retention", gate: "Experiment 70 · standard weights", values: realReference },
+    { evaluation: "Real291 · common high retention", gate: "Experiment 75 · trace-aware weights", values: realWeighted },
+  ];
+  document.getElementById("corrected-trace-weighting-results").innerHTML = weightingRows
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.evaluation)}</th><td>${escapeHtml(row.gate)}</td>
+      <td>${pct(row.values.correct_retention)}</td><td>${pct(row.values.wrong_attribution_rejection)}</td>
+      <td>${pct(row.values.false_attribution_rejection)}</td><td>${row.values.auroc == null ? "—" : decimal(row.values.auroc)}</td></tr>`).join("");
+  const weightingBuckets = [
+    { evaluation: "Non-Real grouped OOF", buckets: traceWeighting.trace_buckets.non_real },
+    { evaluation: "Frozen Real291 transfer", buckets: traceWeighting.trace_buckets.real_frozen },
+  ];
+  document.getElementById("corrected-trace-weighting-buckets").innerHTML = weightingBuckets
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.evaluation)}</th>
+      <td>${traceCell(row.buckets.natural_explicit_wrong_conclusion)}</td>
+      <td>${traceCell(row.buckets.forced_active_wrong_hypothesis)}</td>
+      <td>${traceCell(row.buckets.forced_unsupported_final_token)}</td></tr>`).join("");
+  document.getElementById("corrected-trace-weighting-finding").textContent = traceWeighting.finding;
+  document.getElementById("corrected-trace-weighting-decision").textContent = `Decision: ${traceWeighting.decision}`;
+  document.getElementById("corrected-trace-weighting-next").textContent = `Next hypothesis: ${traceWeighting.next_hypothesis}`;
   const fixedReference = semanticStudy.fixed_1242_reference;
   document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
   document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
