@@ -1656,52 +1656,69 @@
     <p><strong>Next:</strong> use the completed initial synthetic baseline and evaluate Setup 20 separately on the new hard synthetic cohort before returning to gate training.</p>
   `;
 
-  const behavioralMenu = document.getElementById("behavioral-analysis-menu");
-  const behavioralMenuButton = document.getElementById("behavioral-analysis-menu-button");
-  const behavioralTabIds = new Set(["all-setups", "chosen-setups", "factor-effects"]);
-  const closeBehavioralMenu = () => {
-    behavioralMenu.hidden = true;
-    behavioralMenuButton.setAttribute("aria-expanded", "false");
+  const tabMenus = [
+    {
+      menu: document.getElementById("behavioral-analysis-menu"),
+      button: document.getElementById("behavioral-analysis-menu-button"),
+      tabIds: new Set(["all-setups", "chosen-setups", "factor-effects"]),
+    },
+    {
+      menu: document.getElementById("weekly-walkthrough-menu"),
+      button: document.getElementById("weekly-walkthrough-menu-button"),
+      tabIds: new Set(["weekly-report", "weekly-report-aug-16-20"]),
+    },
+  ];
+  const weeklyTabIds = tabMenus[1].tabIds;
+  const closeTabMenu = ({ menu, button }) => {
+    menu.hidden = true;
+    button.setAttribute("aria-expanded", "false");
   };
+  const closeTabMenus = () => tabMenus.forEach(closeTabMenu);
 
   const selectTab = (tabId) => {
     const selected = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
     if (!selected) return;
-    document.body.classList.toggle("weekly-view", tabId === "weekly-report");
+    document.body.classList.toggle("weekly-view", weeklyTabIds.has(tabId));
     document.querySelectorAll(".tab-button").forEach((item) => item.classList.remove("active"));
     document.querySelectorAll(".tab-panel").forEach((panel) => {
       panel.hidden = panel.id !== tabId;
       panel.classList.toggle("active", panel.id === tabId);
     });
     selected.classList.add("active");
-    behavioralMenuButton.classList.toggle("active", behavioralTabIds.has(tabId));
+    tabMenus.forEach(({ button, tabIds }) => {
+      button.classList.toggle("active", tabIds.has(tabId));
+    });
   };
 
-  behavioralMenuButton.addEventListener("click", () => {
-    const willOpen = behavioralMenu.hidden;
-    behavioralMenu.hidden = !willOpen;
-    behavioralMenuButton.setAttribute("aria-expanded", String(willOpen));
-    if (willOpen) {
-      (behavioralMenu.querySelector(".tab-button.active") || behavioralMenu.querySelector(".tab-button"))?.focus();
-    }
+  tabMenus.forEach((tabMenu) => {
+    tabMenu.button.addEventListener("click", () => {
+      const willOpen = tabMenu.menu.hidden;
+      closeTabMenus();
+      tabMenu.menu.hidden = !willOpen;
+      tabMenu.button.setAttribute("aria-expanded", String(willOpen));
+      if (willOpen) {
+        (tabMenu.menu.querySelector(".tab-button.active") || tabMenu.menu.querySelector(".tab-button"))?.focus();
+      }
+    });
   });
 
   document.querySelectorAll(".tab-button").forEach((button) => {
     button.addEventListener("click", () => {
       selectTab(button.dataset.tab);
       window.history.replaceState(null, "", `#${button.dataset.tab}`);
-      closeBehavioralMenu();
+      closeTabMenus();
     });
   });
 
   document.addEventListener("click", (event) => {
-    if (!event.target.closest(".tab-menu")) closeBehavioralMenu();
+    if (!event.target.closest(".tab-menu")) closeTabMenus();
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !behavioralMenu.hidden) {
-      closeBehavioralMenu();
-      behavioralMenuButton.focus();
-    }
+    if (event.key !== "Escape") return;
+    const openMenu = tabMenus.find(({ menu }) => !menu.hidden);
+    if (!openMenu) return;
+    closeTabMenu(openMenu);
+    openMenu.button.focus();
   });
   const initialAnchor = window.location.hash.slice(1);
   selectTab(initialAnchor === "paired-results" || initialAnchor === "evidence-results"
