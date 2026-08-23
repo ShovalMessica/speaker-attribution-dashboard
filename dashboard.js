@@ -839,6 +839,18 @@
   document.getElementById("corrected-mediasum-yield-decision").textContent = `Decision: ${mediasumYield.decision}`;
   document.getElementById("corrected-mediasum-yield-next").textContent = `Next hypothesis: ${mediasumYield.next_hypothesis}`;
   document.getElementById("corrected-mediasum-yield-limitations").textContent = `Limitation: ${mediasumYield.limitations}`;
+  const mediasumMechanisms = semanticStudy.corrected_mediasum_mechanism_study;
+  document.getElementById("corrected-mediasum-mechanism-status").textContent =
+    `Status: ${mediasumMechanisms.status.replaceAll("_", " ")}. ${mediasumMechanisms.scope.total} manually classified traces: ${mediasumMechanisms.scope.natural_explicit_wrong_conclusion} natural and ${mediasumMechanisms.scope.forced_active_wrong_hypothesis} forced-active.`;
+  document.getElementById("corrected-mediasum-mechanism-hypothesis").textContent =
+    `Hypothesis: ${mediasumMechanisms.hypothesis}`;
+  document.getElementById("corrected-mediasum-mechanism-results").innerHTML = mediasumMechanisms.mechanisms
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.mechanism)}</th><td>${row.total}</td>
+      <td>${row.natural}</td><td>${row.forced_active}</td><td>${escapeHtml(row.description)}</td></tr>`).join("");
+  document.getElementById("corrected-mediasum-mechanism-finding").textContent = mediasumMechanisms.finding;
+  document.getElementById("corrected-mediasum-mechanism-decision").textContent = `Decision: ${mediasumMechanisms.decision}`;
+  document.getElementById("corrected-mediasum-mechanism-next").textContent = `Next hypothesis: ${mediasumMechanisms.next_hypothesis}`;
+  document.getElementById("corrected-mediasum-mechanism-limitations").textContent = `Limitation: ${mediasumMechanisms.limitations}`;
   const fixedReference = semanticStudy.fixed_1242_reference;
   document.getElementById("fixed-1242-reference-status").textContent = fixedReference.status;
   document.getElementById("fixed-1242-reference-scope").textContent = fixedReference.scope;
