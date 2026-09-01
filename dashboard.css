@@ -483,6 +483,14 @@ circle.false { stroke: #17705a; fill: #17705a; }
 .paired-shared-settings > strong { width: 100%; color: var(--ink); font-size: 12px; }
 .paired-shared-settings span b { color: var(--ink); }
 .paired-results-table { min-width: 980px; }
+.full-evaluation-stage { padding: 28px 0 34px; border-top: 1px solid var(--line); }
+.full-evaluation-stage:first-child { padding-top: 10px; border-top: 0; }
+.full-evaluation-stage h3 { margin: 0 0 10px; font-size: 20px; }
+.full-evaluation-stage > p { max-width: 1000px; margin: 5px 0; }
+.full-evaluation-stage .table-wrap { margin-top: 16px; }
+.full-evidence-only-table { min-width: 980px; }
+.full-evidence-only-table .evaluation-status { display: block; width: fit-content; }
+.full-evidence-only-table .incomplete-result td { background: #fffaf0; }
 .full-dataset-definitions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

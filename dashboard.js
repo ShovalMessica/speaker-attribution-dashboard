@@ -185,6 +185,29 @@
     { showCounts: true, showConclusions: false, includeHardSynthetic: true, reportOnly: true }
   );
   document.getElementById("full-evaluation-note").textContent = data.full_evaluation.scope_note;
+  document.getElementById("full-evidence-only-stages").innerHTML = data.full_evaluation.evidence_only_stages
+    .map((stage) => `<section id="${escapeHtml(stage.id)}" class="full-evaluation-stage">
+      <h3>${escapeHtml(stage.title)}</h3>
+      <p><strong>Origin:</strong> ${escapeHtml(stage.origin)}</p>
+      <p><strong>Content:</strong> ${escapeHtml(stage.content)}</p>
+      <p><strong>Interpretation:</strong> ${escapeHtml(stage.interpretation)}</p>
+      <div class="table-wrap">
+        <table class="subset-results-table full-evidence-only-table">
+          <thead><tr>
+            <th>Setup</th><th>Evaluated</th><th>Correct attribution</th>
+            <th>Wrong attribution</th><th>Missed attribution</th>
+            <th>AUROC</th><th>FPR @ ~90% TPR</th><th>Configuration</th>
+          </tr></thead>
+          <tbody>${stage.rows.map((row) => `<tr class="${row.completed ? "" : "incomplete-result"}">
+            <td><strong>Setup ${row.setup_number}</strong></td>
+            <td><strong>${row.examples} / ${stage.target_examples}</strong><span class="evaluation-status ${row.completed ? "complete" : "paused"}">${escapeHtml(row.status)}</span></td>
+            <td>${pct(row.accuracy)}</td><td>${pct(row.wrong_rate)}</td><td>${pct(row.unknown_rate)}</td>
+            <td>${decimal(row.auroc)}</td><td>${pct(row.near_90_fpr)}</td>
+            <td class="definition-cell">${setupDetails(row)}</td>
+          </tr>`).join("")}</tbody>
+        </table>
+      </div>
+    </section>`).join("");
   document.getElementById("full-evaluation-status").textContent = data.full_evaluation.status_note;
   document.getElementById("full-dataset-definitions").innerHTML = data.full_evaluation.datasets
     .map((dataset) => `<section>
