@@ -116,6 +116,156 @@
   );
 
   const coarseProbing = data.coarse_grained_probing;
+  const researchRecord = coarseProbing.research_record;
+  const maybePct = (value) => value === null || value === undefined ? "—" : pct(value);
+  const maybeDecimal = (value) => value === null || value === undefined ? "—" : decimal(value);
+  const metricTriplet = (metrics, kind) => {
+    if (!metrics) return "—";
+    const values = kind === "auroc"
+      ? [metrics.overall_auroc, metrics.wrong_auroc, metrics.false_auroc].map(maybeDecimal)
+      : [metrics.correct_retention, metrics.wrong_rejection, metrics.false_rejection].map(maybePct);
+    return values.join(" / ");
+  };
+  const matchedPair = (metrics) => metrics
+    ? `${maybePct(metrics.wrong_rejection)} / ${maybePct(metrics.false_rejection)}`
+    : "—";
+  const statusClass = (status) => status.toLowerCase().includes("planned")
+    ? "planned"
+    : status.toLowerCase().includes("negative")
+      ? "negative"
+      : status.toLowerCase().includes("descriptive")
+        ? "descriptive"
+        : status.toLowerCase().includes("ablation")
+          ? "ablation"
+          : "valid";
+  const compactText = (value, limit = 230) => {
+    const text = String(value);
+    if (text.length <= limit) return text;
+    const sentenceEnd = text.lastIndexOf(". ", limit);
+    const cut = sentenceEnd > limit * 0.55 ? sentenceEnd + 1 : text.lastIndexOf(" ", limit);
+    return `${text.slice(0, Math.max(cut, 1)).trim()}…`;
+  };
+  const renderTextValues = (value) => {
+    if (!value) return "";
+    const items = Array.isArray(value)
+      ? value
+      : typeof value === "object"
+        ? Object.values(value)
+        : [value];
+    return items.filter((item) => typeof item === "string")
+      .map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  };
+  const researchLineChart = ({ points, series, yMin = 0.5, yMax = 1, percent = false }) => {
+    if (!points.length) return "";
+    const width = 860;
+    const height = 330;
+    const left = 58;
+    const right = 18;
+    const top = 24;
+    const bottom = 72;
+    const plotWidth = width - left - right;
+    const plotHeight = height - top - bottom;
+    const x = (index) => left + (points.length === 1 ? plotWidth / 2 : index * plotWidth / (points.length - 1));
+    const y = (value) => top + (yMax - value) * plotHeight / (yMax - yMin);
+    const ticks = [0, 0.25, 0.5, 0.75, 1].map((fraction) => yMin + fraction * (yMax - yMin));
+    const grid = ticks.map((value) => `<line x1="${left}" y1="${y(value)}" x2="${width - right}" y2="${y(value)}" class="research-chart-grid" />
+      <text x="${left - 10}" y="${y(value) + 4}" text-anchor="end" class="research-chart-axis">${percent ? `${Math.round(value * 100)}%` : value.toFixed(2)}</text>`).join("");
+    const lines = series.map((item) => {
+      const coords = points.map((point, index) => `${x(index)},${y(Number(point[item.key]))}`).join(" ");
+      const dots = points.map((point, index) => `<circle cx="${x(index)}" cy="${y(Number(point[item.key]))}" r="4" class="${item.className}" />`).join("");
+      return `<polyline points="${coords}" class="research-chart-line ${item.className}" />${dots}`;
+    }).join("");
+    const labels = points.map((point, index) => `<text x="${x(index)}" y="${height - 42}" text-anchor="middle" class="research-chart-axis">${escapeHtml(point.label)}</text>`).join("");
+    return `<div class="research-chart-legend">${series.map((item) => `<span class="${item.className}">${escapeHtml(item.label)}</span>`).join("")}</div>
+      <svg class="research-line-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(series.map((item) => item.label).join(" and "))}">
+        ${grid}${lines}${labels}
+      </svg>`;
+  };
+
+  document.getElementById("coarse-methodology-summary").textContent =
+    `${researchRecord.methodology.proposals.toLocaleString()} non-Real proposals from ${researchRecord.methodology.meetings} grouped meetings: ` +
+    `${researchRecord.methodology.correct} correct attribution / ${researchRecord.methodology.wrong} wrong attribution / ` +
+    `${researchRecord.methodology.false_attribution} false attribution. Real291 is used only after non-Real selection as transfer/development evidence.`;
+  document.getElementById("coarse-methodology-rules").innerHTML = researchRecord.methodology.rules
+    .map((rule) => `<li>${escapeHtml(rule)}</li>`).join("");
+  document.getElementById("coarse-research-progress-rows").innerHTML = researchRecord.experiments
+    .map((experiment) => `<tr>
+      <th scope="row">Experiment ${experiment.number}<span>${escapeHtml(experiment.title)}</span></th>
+      <td>${escapeHtml(compactText(experiment.question, 210))}</td>
+      <td>${escapeHtml(experiment.evidence_type)}</td>
+      <td><span class="research-status ${statusClass(experiment.status)}">${escapeHtml(experiment.status)}</span></td>
+      <td title="${escapeHtml(experiment.finding)}">${escapeHtml(compactText(experiment.finding))}</td>
+      <td title="${escapeHtml(experiment.decision)}">${escapeHtml(compactText(experiment.decision))}</td>
+    </tr>`).join("");
+  document.getElementById("coarse-gate-comparison-rows").innerHTML = researchRecord.gate_comparisons
+    .map((row) => `<tr>
+      <th scope="row">Experiment ${row.number}<span>${escapeHtml(row.label)}</span></th>
+      <td>${metricTriplet(row.development, "auroc")}</td>
+      <td>${metricTriplet(row.development, "operating")}</td>
+      <td>${metricTriplet(row.real_frozen, "operating")}</td>
+      <td>${matchedPair(row.real_matched)}</td>
+      <td>${escapeHtml(row.decision)}</td>
+    </tr>`).join("");
+  document.getElementById("coarse-research-archive-rows").innerHTML = researchRecord.archive
+    .map((row) => `<tr><th scope="row">${escapeHtml(row.experiment_ids)}</th>
+      <td>${escapeHtml(row.status.replaceAll("_", " "))}</td>
+      <td>${escapeHtml(row.reason)}</td><td>${escapeHtml(row.claim_policy)}</td></tr>`).join("");
+
+  const acrossLayerChart = researchLineChart({
+    points: researchRecord.across_layers.map((row) => ({ ...row, label: `L${row.layer}` })),
+    series: [
+      { key: "overall_auroc", label: "Overall AUROC", className: "overall" },
+      { key: "wrong_auroc", label: "Wrong-attribution AUROC", className: "wrong" },
+      { key: "false_auroc", label: "False-attribution AUROC", className: "false" },
+    ],
+    yMin: 0.5,
+    yMax: 1,
+  });
+  const tokenTrendChart = researchLineChart({
+    points: researchRecord.token_position_trend.map((row) => ({
+      ...row,
+      label: row.display_name
+        .replace("Last reasoning token", "Reasoning last")
+        .replace("Generated answer token", "Answer token")
+        .replace("Pre-FINAL colon", "Pre-FINAL"),
+    })),
+    series: [{ key: "unified_fpr", label: "Real291 unified FPR at 90.7% TPR", className: "wrong" }],
+    yMin: 0,
+    yMax: 1,
+    percent: true,
+  });
+  document.getElementById("coarse-research-phases").innerHTML = researchRecord.phases
+    .map((phase) => {
+      const phaseExperiments = researchRecord.experiments.filter((experiment) => experiment.phase === phase.id);
+      const chart = phase.id === "representation"
+        ? `<figure class="coarse-research-chart"><figcaption>Across-layer representation quality · all-1,242 residual pre-FINAL reference</figcaption>${acrossLayerChart}</figure>`
+        : phase.id === "mechanism"
+          ? `<figure class="coarse-research-chart"><figcaption>Experiment 83 · Real291 token-position trend</figcaption>${tokenTrendChart}</figure>`
+          : "";
+      return `<section class="coarse-research-phase" aria-labelledby="coarse-phase-${phase.id}">
+        <h4 id="coarse-phase-${phase.id}">${escapeHtml(phase.title)}</h4>
+        <p>${escapeHtml(phase.description)}</p>
+        ${chart}
+        <div class="coarse-experiment-list">
+          ${phaseExperiments.map((experiment) => {
+            const experimentGateRows = researchRecord.gate_comparisons.filter((row) => row.number === experiment.number);
+            return `<details class="coarse-experiment-card">
+              <summary>
+                <span class="coarse-experiment-heading"><b>Experiment ${experiment.number} · ${escapeHtml(experiment.title)}</b><span class="research-status ${statusClass(experiment.status)}">${escapeHtml(experiment.status)}</span></span>
+                <span><strong>Question:</strong> ${escapeHtml(experiment.question)}</span>
+                <span><strong>Finding:</strong> ${escapeHtml(experiment.finding)}</span>
+                <span><strong>Decision:</strong> ${escapeHtml(experiment.decision)}</span>
+              </summary>
+              <div class="coarse-experiment-body">
+                ${experiment.facts.length ? `<dl>${experiment.facts.map((fact) => `<dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd>`).join("")}</dl>` : ""}
+                ${experimentGateRows.length ? `<h5>Standardized gate result</h5><div class="coarse-research-table-wrap"><table class="coarse-research-table compact"><thead><tr><th>Gate</th><th>Non-Real AUROC<br>overall / wrong / false</th><th>Non-Real operating point<br>retention / wrong / false</th><th>Real frozen threshold<br>retention / wrong / false</th><th>Real matched retention<br>wrong / false</th></tr></thead><tbody>${experimentGateRows.map((row) => `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${metricTriplet(row.development, "auroc")}</td><td>${metricTriplet(row.development, "operating")}</td><td>${metricTriplet(row.real_frozen, "operating")}</td><td>${matchedPair(row.real_matched)}</td></tr>`).join("")}</tbody></table></div>` : ""}
+                ${experiment.limitations ? `<h5>Limitations</h5><ul>${renderTextValues(experiment.limitations)}</ul>` : ""}
+              </div>
+            </details>`;
+          }).join("")}
+        </div>
+      </section>`;
+    }).join("");
   const standardizedProbe = coarseProbing.standardized_comparison;
   const standardizedFormat = (metricId, value) => metricId === "auroc"
     ? Number(value).toFixed(3)
@@ -615,9 +765,15 @@
   if (correctedReference.baseline) {
     correctedReferenceRows.push({
       label: "Native output-confidence baseline",
-      evaluation: "Non-Real grouped OOF",
+      evaluation: "Full Synthetic threshold selection",
       layer: "—",
       metrics: correctedReference.baseline,
+    });
+    correctedReferenceRows.push({
+      label: "Native output-confidence baseline",
+      evaluation: "Real291 · Synthetic-frozen threshold",
+      layer: "—",
+      metrics: correctedReference.baseline_frozen_real,
     });
   }
   document.getElementById("corrected-1242-reference-results").innerHTML = correctedReferenceRows.length
@@ -630,12 +786,20 @@
       <td>${decimal(row.metrics.correct_vs_wrong_auroc)}</td>
       <td>${decimal(row.metrics.correct_vs_false_attribution_auroc)}</td></tr>`).join("")
     : `<tr><td colspan="9">Pending</td></tr>`;
-  document.getElementById("corrected-1242-real-90-results").innerHTML = correctedReference.tracks.length
-    ? correctedReference.tracks.map((track) => `<tr><th scope="row">${escapeHtml(track.label)}</th>
+  const correctedMatchedRetentionRows = correctedReference.tracks.map((track) => `<tr><th scope="row">${escapeHtml(track.label)}</th>
       <td>${track.selected_layer}</td>
       <td>${pct(track.real_at_90pct.correct_retention)}</td>
       <td>${pct(track.real_at_90pct.wrong_attribution_rejection)}</td>
-      <td>${pct(track.real_at_90pct.false_attribution_rejection)}</td></tr>`).join("")
+      <td>${pct(track.real_at_90pct.false_attribution_rejection)}</td></tr>`);
+  if (correctedReference.baseline_real_matched_retention) {
+    const row = correctedReference.baseline_real_matched_retention;
+    correctedMatchedRetentionRows.push(`<tr><th scope="row">Native output-confidence baseline</th>
+      <td>—</td><td>${pct(row.correct_retention)}</td>
+      <td>${pct(row.wrong_attribution_rejection)}</td>
+      <td>${pct(row.false_attribution_rejection)}</td></tr>`);
+  }
+  document.getElementById("corrected-1242-real-90-results").innerHTML = correctedMatchedRetentionRows.length
+    ? correctedMatchedRetentionRows.join("")
     : `<tr><td colspan="5">Pending</td></tr>`;
   document.getElementById("corrected-1242-reference-conclusion").textContent = correctedReference.conclusion;
   document.getElementById("corrected-1242-reference-calibration").textContent = correctedReference.calibration_warning;

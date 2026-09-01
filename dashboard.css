@@ -260,6 +260,67 @@ h1 {
 .coarse-probe-03-legend .experiment-02::before { background: #1f2937; }
 .coarse-probe-03-legend .experiment-03::before { background: #17705a; }
 .coarse-probe-03-legend .experiment-03-real::before { background: #356b9a; }
+.coarse-research-overview,
+.coarse-research-record,
+.coarse-research-archive { max-width: none; color: #000; }
+.coarse-research-overview h3:not(:first-child) { margin-top: 32px; }
+.coarse-research-rules { max-width: 980px; margin: 0; padding-left: 22px; }
+.coarse-research-rules li + li { margin-top: 6px; }
+.coarse-research-table-wrap { width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+.coarse-research-table { width: 100%; min-width: 980px; color: #000; font-size: 15px; }
+.coarse-research-table th,
+.coarse-research-table td { padding: 11px 13px; vertical-align: top; text-align: left; white-space: normal; }
+.coarse-research-table thead th { background: #f4f6f8; font-weight: 700; }
+.coarse-research-table tbody th { min-width: 150px; }
+.coarse-research-table tbody th span { display: block; margin-top: 3px; font-weight: 500; }
+.coarse-progress-table { min-width: 1320px; }
+.coarse-progress-table td:nth-child(2) { min-width: 260px; }
+.coarse-progress-table td:nth-child(5),
+.coarse-progress-table td:nth-child(6) { min-width: 300px; }
+.coarse-gate-comparison-table { min-width: 1280px; }
+.coarse-gate-comparison-table td:nth-child(2),
+.coarse-gate-comparison-table td:nth-child(3),
+.coarse-gate-comparison-table td:nth-child(4),
+.coarse-gate-comparison-table td:nth-child(5) { white-space: nowrap; text-align: center; }
+.research-status { display: inline-block; padding: 3px 8px; border-radius: 999px; background: #e5f4ef; color: #075f49; font-size: 14px; font-weight: 700; white-space: nowrap; }
+.research-status.negative { background: #f8edd2; color: #805a00; }
+.research-status.descriptive,
+.research-status.ablation { background: #e9eef6; color: #334e73; }
+.research-status.planned { background: #eef0f3; color: #596579; }
+.coarse-research-phase { padding: 22px 0; border-top: 1px solid var(--line); }
+.coarse-research-phase:first-child { padding-top: 4px; border-top: 0; }
+.task-data-section .coarse-research-phase h4 { margin: 0 0 7px; font-size: 19px; }
+.coarse-experiment-list { display: grid; gap: 10px; margin-top: 14px; }
+.coarse-experiment-card { border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.coarse-experiment-card > summary { display: grid; gap: 7px; padding: 15px 18px; cursor: pointer; color: #000; list-style-position: inside; }
+.coarse-experiment-card > summary::marker { color: #17705a; }
+.coarse-experiment-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; font-size: 17px; }
+.coarse-experiment-body { padding: 0 18px 18px 35px; color: #000; }
+.coarse-experiment-body dl { display: grid; grid-template-columns: minmax(130px, 190px) minmax(0, 1fr); gap: 8px 16px; margin: 4px 0 16px; }
+.coarse-experiment-body dt { font-weight: 700; }
+.coarse-experiment-body dd { margin: 0; }
+.coarse-experiment-body h5 { margin: 18px 0 8px; font-size: 15px; }
+.coarse-research-table.compact { min-width: 1100px; }
+.coarse-research-archive { margin-top: 10px; }
+.coarse-research-archive > summary { cursor: pointer; font-size: 18px; font-weight: 700; }
+.coarse-research-archive[open] > summary { margin-bottom: 14px; }
+.coarse-research-chart { max-width: 900px; margin: 18px 0; }
+.coarse-research-chart figcaption { margin-bottom: 8px; font-weight: 700; }
+.research-line-chart { display: block; width: 100%; height: auto; }
+.research-chart-grid { stroke: #d8dee8; stroke-width: 1; }
+.research-chart-axis { fill: #000; font-size: 12px; }
+.research-chart-line { fill: none; stroke-width: 3; }
+.research-chart-line.overall,
+circle.overall { stroke: #1f2937; fill: #1f2937; }
+.research-chart-line.wrong,
+circle.wrong { stroke: #bf3f3f; fill: #bf3f3f; }
+.research-chart-line.false,
+circle.false { stroke: #17705a; fill: #17705a; }
+.research-chart-legend { display: flex; flex-wrap: wrap; gap: 10px 22px; font-weight: 700; }
+.research-chart-legend span::before { display: inline-block; width: 19px; margin-right: 7px; border-top: 3px solid; content: ""; vertical-align: middle; }
+.research-chart-legend .overall::before { border-color: #1f2937; }
+.research-chart-legend .wrong::before { border-color: #bf3f3f; }
+.research-chart-legend .false::before { border-color: #17705a; }
 .probe-comparison-bar.experiment-02 { fill: #1f2937; }
 .probe-comparison-bar.experiment-03 { fill: #17705a; }
 .probe-grid { stroke: #e1e6ee; stroke-width: 1; }
@@ -1101,6 +1162,9 @@ tbody tr:hover { background: #f8fafb; }
   .weekly-behavior-label span { display: block; }
   .coarse-probing-facts { grid-template-columns: 1fr; gap: 3px; }
   .coarse-probe-03-charts { grid-template-columns: 1fr; }
+  .coarse-experiment-body { padding-left: 18px; }
+  .coarse-experiment-body dl { grid-template-columns: 1fr; gap: 3px; }
+  .coarse-experiment-body dd { margin-bottom: 7px; }
   .standardized-metric-chart { max-width: none; }
   .coarse-probing-facts dd { margin-bottom: 8px; }
 }
