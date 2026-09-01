@@ -64,10 +64,7 @@
       </div>
     </details>`;
 
-  document.getElementById("screening-shortlist").innerHTML =
-    `<strong>Top screening shortlist (${data.screening_candidates.length}):</strong> ` +
-    data.screening_candidates.map((number) => `Setup ${number}`).join(", ");
-  document.querySelector("#setup-table tbody").innerHTML = data.setups.map((row) => `
+  const screeningRow = (row) => `
       <tr class="${row.meets_screening_target ? "goal-match" : ""}">
         <td><strong>Setup ${row.setup_number}</strong>${row.meets_screening_target ? '<span class="status-badge">Target match</span>' : ""}</td>
         <td>${pct(row.accuracy)}</td>
@@ -77,7 +74,48 @@
         <td>${pct(row.near_90_fpr)}</td>
         <td class="definition-cell">${setupDetails(row)}</td>
       </tr>
-    `).join("");
+    `;
+  const screeningTable = (section, rows, showShortlist = false) => `
+    <section id="${escapeHtml(section.id)}" class="screening-subset-section">
+      <h3>${escapeHtml(section.title)}</h3>
+      <p><strong>Origin:</strong> ${escapeHtml(section.origin)}</p>
+      <p><strong>Content:</strong> ${escapeHtml(section.content)}</p>
+      <p><strong>Purpose:</strong> ${escapeHtml(section.purpose)}</p>
+      ${showShortlist ? `<p class="screening-shortlist"><strong>Shortlist from this panel (${data.screening_candidates.length}):</strong> ${data.screening_candidates.map((number) => `Setup ${number}`).join(", ")}</p>` : ""}
+      <div class="table-wrap">
+        <table class="subset-results-table">
+          <thead><tr>
+            <th>Setup</th><th>Correct attribution</th><th>Wrong attribution</th>
+            <th>Missed attribution</th><th>AUROC</th><th>FPR @ ~90% TPR</th><th>Configuration</th>
+          </tr></thead>
+          <tbody>${rows.map(screeningRow).join("")}</tbody>
+        </table>
+      </div>
+    </section>`;
+  const setupByNumber = Object.fromEntries(data.setups.map((row) => [row.setup_number, row]));
+  const evidenceSections = data.subset_evaluation.evidence_sections;
+  const orderedScreeningSections = [
+    ...evidenceSections.slice(0, 2).map((section) => ({
+      section,
+      rows: section.setup_numbers.map((number) => setupByNumber[number]),
+    })),
+    ...data.subset_evaluation.extension_sections.map((section) => ({ section, rows: section.rows })),
+    ...evidenceSections.slice(2).map((section) => ({
+      section,
+      rows: section.setup_numbers.map((number) => setupByNumber[number]),
+    })),
+  ];
+  document.getElementById("subset-evaluation-note").textContent = data.subset_evaluation.scope_note;
+  document.getElementById("screening-subset-sections").innerHTML = orderedScreeningSections
+    .map(({ section, rows }) => screeningTable(
+      section,
+      rows,
+      section.id === "real_representative_joint_50"
+    )).join("");
+  document.getElementById("paired-panel-definitions").innerHTML = data.subset_evaluation.paired_panels
+    .map((panel) => `<section><h3>${escapeHtml(panel.title)}</h3>
+      <p><strong>Origin:</strong> ${escapeHtml(panel.origin)}</p>
+      <p><strong>Content:</strong> ${escapeHtml(panel.content)}</p></section>`).join("");
 
   const pairedMetricCells = (metrics, progress = null) => metrics ? `
     <td>${pct(metrics.accuracy)}</td>
