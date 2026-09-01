@@ -45,21 +45,16 @@
         : "";
       return `${syntheticSource}${rawBehaviorTable(dataset)}`;
     }).join("");
-  const setupDetails = (row, conclusion = null, status = null, paired = false) => `
+  const setupDetails = (row, conclusion = null, status = null) => `
     <details class="setup-definition">
       <summary>View setup</summary>
       <div class="setup-definition-body">
         <p><strong>Main change:</strong> ${escapeHtml(row.definition.main_change)}</p>
-        <dl>
-          ${paired ? row.definition.factor_profile.map((factor) => `
-            <dt>${escapeHtml(factor.label)}</dt><dd>${escapeHtml(factor.value)}</dd>`).join("") : `<dt>Screening panel</dt><dd>${escapeHtml(row.definition.screening_panel)}</dd>
-          <dt>Context</dt><dd>${escapeHtml(row.definition.context)}</dd>
-          <dt>Participants</dt><dd>${escapeHtml(row.definition.participants)}</dd>
-          <dt>Prompt</dt><dd>${escapeHtml(row.definition.prompt_template)} <span class="file-name">(${escapeHtml(row.definition.prompt_file)})</span></dd>
-          <dt>Reasoning budget</dt><dd>${escapeHtml(row.definition.reasoning_tokens)} tokens</dd>
-          <dt>Sampling</dt><dd>${escapeHtml(row.definition.sampling)}</dd>
-          <dt>Final decision cue</dt><dd>${escapeHtml(row.definition.final_cue)}</dd>`}
+        <dl class="setup-factor-profile">
+          ${row.definition.factor_profile.map((factor) => `
+            <dt>${escapeHtml(factor.label)}</dt><dd>${escapeHtml(factor.value)}</dd>`).join("")}
         </dl>
+        <p class="setup-config-source"><strong>Exact prompt and configuration:</strong> ${escapeHtml(row.setup_id)}/setup.json · ${escapeHtml(row.definition.prompt_template)}</p>
         ${conclusion ? `<div class="setup-conclusion"><strong>${escapeHtml(status)}</strong><p>${escapeHtml(conclusion)}</p></div>` : ""}
       </div>
     </details>`;
@@ -172,7 +167,6 @@
           row,
           showConclusions ? row.conclusion : null,
           showConclusions ? row.status : null,
-          true
         )}</td>` : ""}
       </tr>
     `).join("");

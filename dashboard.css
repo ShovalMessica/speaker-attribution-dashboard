@@ -567,7 +567,7 @@ tbody tr:hover { background: #f8fafb; }
   white-space: nowrap;
 }
 
-.setup-definition[open] { min-width: 410px; }
+.setup-definition[open] { min-width: 560px; }
 
 .setup-definition-body {
   margin-top: 10px;
@@ -594,6 +594,12 @@ tbody tr:hover { background: #f8fafb; }
 }
 
 .setup-definition-body dd { margin: 0; }
+.setup-config-source {
+  margin: 13px 0 0 !important;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+}
 .file-name { color: var(--muted); }
 
 .setup-conclusion {
