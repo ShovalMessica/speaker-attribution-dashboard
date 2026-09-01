@@ -20,6 +20,11 @@
       <td class="raw-count">${outcome.count}</td>
       <td class="raw-rate">${pct(outcome.rate)}</td>
     </tr>`).join("")).join("");
+    const pairedAccuracyRow = dataset.paired_accuracy ? `<tr class="raw-paired-accuracy">
+      <th colspan="2">${escapeHtml(dataset.paired_accuracy.label)}</th>
+      <td class="raw-count">${dataset.paired_accuracy.count} / ${dataset.paired_accuracy.total}</td>
+      <td class="raw-rate">${pct(dataset.paired_accuracy.rate)}</td>
+    </tr>` : "";
     const sourceSuffix = dataset.id === "real" ? ` (${escapeHtml(dataset.source)})` : "";
     const sourceLine = dataset.id === "mediasum"
       ? `<p class="raw-behavior-source"><strong>Source:</strong> ${escapeHtml(dataset.source)}. Evidence-only; no no-evidence variants were constructed.</p>`
@@ -29,7 +34,7 @@
       ${sourceLine}
       <div class="table-wrap evaluation-table-wrap raw-behavior-table-wrap"><table class="pair-table outcome-definition-table raw-behavior-table">
         <thead><tr><th>Type</th><th>Subtype</th><th class="raw-count">Count</th><th class="raw-rate">Rate</th></tr></thead>
-        <tbody>${rows}</tbody>
+        <tbody>${rows}${pairedAccuracyRow}</tbody>
       </table></div>
     </section>`;
   };

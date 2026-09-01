@@ -405,6 +405,13 @@ circle.false { stroke: #17705a; fill: #17705a; }
   font-size: inherit;
   text-align: center;
 }
+.raw-behavior-table .raw-paired-accuracy th,
+.raw-behavior-table .raw-paired-accuracy td {
+  border-top: 2px solid #cbd3df;
+  background: #f7f9fb;
+  font-weight: 700;
+}
+.raw-behavior-table .raw-paired-accuracy th { text-align: left; }
 .evaluation-table-wrap { width: fit-content; max-width: 100%; }
 .outcome-definition-table td[rowspan] { vertical-align: middle; }
 .outcome-definition-table { width: max-content; min-width: 0; table-layout: auto; }
