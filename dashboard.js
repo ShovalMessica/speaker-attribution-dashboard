@@ -15,9 +15,10 @@
   const rawBehavior = data.raw_model_behavior;
   const rawBehaviorTable = (dataset) => {
     const rows = dataset.groups.map((group) => group.outcomes.map((outcome, index) => `<tr>
-      ${index === 0 ? `<th scope="rowgroup" rowspan="${group.outcomes.length}">${escapeHtml(group.type)}<span>n = ${group.total}</span></th>` : ""}
-      <td>${escapeHtml(outcome.label)}</td>
+      ${index === 0 ? `<td rowspan="${group.outcomes.length}">${escapeHtml(group.type)}</td>` : ""}
+      <td>${escapeHtml(outcome.label)} ${outcome.label === "Correct attribution" || outcome.label === "Correct rejection" ? "✅" : "❌"}</td>
       <td>${outcome.count}</td>
+      <td>${group.total}</td>
       <td>${pct(outcome.rate)}</td>
     </tr>`).join("")).join("");
     const sourceSuffix = dataset.id === "real" ? ` (${escapeHtml(dataset.source)})` : "";
@@ -27,8 +28,8 @@
     return `<section class="raw-behavior-dataset raw-behavior-${escapeHtml(dataset.id)}">
       <h5>${escapeHtml(dataset.title)}${sourceSuffix}</h5>
       ${sourceLine}
-      <div class="table-wrap raw-behavior-table-wrap"><table class="pair-table raw-behavior-table">
-        <thead><tr><th>Type</th><th>Subtype</th><th>Count</th><th>Rate</th></tr></thead>
+      <div class="table-wrap evaluation-table-wrap raw-behavior-table-wrap"><table class="pair-table outcome-definition-table raw-behavior-table">
+        <thead><tr><th>Type</th><th>Subtype</th><th>Count</th><th>Total</th><th>Rate</th></tr></thead>
         <tbody>${rows}</tbody>
       </table></div>
     </section>`;

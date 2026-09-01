@@ -390,13 +390,10 @@ circle.false { stroke: #17705a; fill: #17705a; }
 .raw-behavior-dataset h5 { margin: 0 0 9px; font-size: 16px; }
 .raw-behavior-source { margin: 0 0 10px; }
 .raw-behavior-table-wrap { width: fit-content; max-width: 100%; }
-.raw-behavior-table { width: auto; min-width: 650px; color: #000; font-size: 15px; }
-.raw-behavior-table th,
-.raw-behavior-table td { padding: 9px 13px; text-align: left; white-space: normal; }
-.raw-behavior-table th[scope="rowgroup"] { min-width: 270px; vertical-align: middle; }
-.raw-behavior-table th[scope="rowgroup"] span { display: block; margin-top: 3px; font-weight: 500; }
+.raw-behavior-table td[rowspan] { vertical-align: middle; }
 .raw-behavior-table td:nth-child(3),
-.raw-behavior-table td:nth-child(4) { width: 90px; text-align: right; white-space: nowrap; }
+.raw-behavior-table td:nth-child(4),
+.raw-behavior-table td:nth-child(5) { text-align: center; }
 .evaluation-table-wrap { width: fit-content; max-width: 100%; }
 .outcome-definition-table td[rowspan] { vertical-align: middle; }
 .outcome-definition-table { width: max-content; min-width: 0; table-layout: auto; }
