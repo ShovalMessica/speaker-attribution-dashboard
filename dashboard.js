@@ -160,9 +160,9 @@
     const width = 860;
     const height = 330;
     const left = 58;
-    const right = 18;
+    const right = 58;
     const top = 24;
-    const bottom = 72;
+    const bottom = 78;
     const plotWidth = width - left - right;
     const plotHeight = height - top - bottom;
     const x = (index) => left + (points.length === 1 ? plotWidth / 2 : index * plotWidth / (points.length - 1));
@@ -188,14 +188,22 @@
     `${researchRecord.methodology.false_attribution} false attribution. Real291 is used only after non-Real selection as transfer/development evidence.`;
   document.getElementById("coarse-methodology-rules").innerHTML = researchRecord.methodology.rules
     .map((rule) => `<li>${escapeHtml(rule)}</li>`).join("");
+  document.getElementById("coarse-headline-results-rows").innerHTML = researchRecord.headline_results
+    .map((row) => `<tr>
+      <th scope="row">${escapeHtml(row.role)}<span>Experiment ${row.experiment}</span></th>
+      <td>${escapeHtml(row.gate)}</td>
+      <td>${escapeHtml(row.training)}</td>
+      <td><strong>${escapeHtml(row.real_result)}</strong></td>
+      <td>${escapeHtml(row.interpretation)}</td>
+    </tr>`).join("");
+  document.getElementById("coarse-main-conclusions").innerHTML = researchRecord.conclusions
+    .map((conclusion) => `<li>${escapeHtml(conclusion)}</li>`).join("");
   document.getElementById("coarse-research-progress-rows").innerHTML = researchRecord.experiments
     .map((experiment) => `<tr>
       <th scope="row">Experiment ${experiment.number}<span>${escapeHtml(experiment.title)}</span></th>
-      <td>${escapeHtml(compactText(experiment.question, 210))}</td>
-      <td>${escapeHtml(experiment.evidence_type)}</td>
+      <td>${escapeHtml(compactText(experiment.question, 260))}</td>
       <td><span class="research-status ${statusClass(experiment.status)}">${escapeHtml(experiment.status)}</span></td>
-      <td title="${escapeHtml(experiment.finding)}">${escapeHtml(compactText(experiment.finding))}</td>
-      <td title="${escapeHtml(experiment.decision)}">${escapeHtml(compactText(experiment.decision))}</td>
+      <td title="${escapeHtml(experiment.finding)}">${escapeHtml(compactText(experiment.finding, 300))}</td>
     </tr>`).join("");
   document.getElementById("coarse-gate-comparison-rows").innerHTML = researchRecord.gate_comparisons
     .map((row) => `<tr>
@@ -226,21 +234,31 @@
       ...row,
       label: row.display_name
         .replace("Last reasoning token", "Reasoning last")
-        .replace("Generated answer token", "Answer token")
+        .replace("Generated answer token", "Answer")
         .replace("Pre-FINAL colon", "Pre-FINAL"),
     })),
-    series: [{ key: "unified_fpr", label: "Real291 unified FPR at 90.7% TPR", className: "wrong" }],
+    series: [{ key: "unified_fpr", label: "Accepted incorrect proposals at 90.7% correct retention", className: "wrong" }],
     yMin: 0,
     yMax: 1,
     percent: true,
   });
+  const tokenTrendRows = researchRecord.token_position_trend.map((row) => `<tr>
+    <th scope="row">${escapeHtml(row.display_name)}</th>
+    <td>Layer ${row.layer}</td>
+    <td>${escapeHtml(row.component)}</td>
+    <td>${pct(row.tpr)}</td>
+    <td>${pct(1 - row.wrong_accepted / row.wrong_total)}</td>
+    <td>${pct(1 - row.false_attribution_accepted / row.false_attribution_total)}</td>
+    <td>${pct(row.unified_fpr)}</td>
+  </tr>`).join("");
   document.getElementById("coarse-research-phases").innerHTML = researchRecord.phases
     .map((phase) => {
       const phaseExperiments = researchRecord.experiments.filter((experiment) => experiment.phase === phase.id);
       const chart = phase.id === "representation"
         ? `<figure class="coarse-research-chart"><figcaption>Across-layer representation quality · all-1,242 residual pre-FINAL reference</figcaption>${acrossLayerChart}</figure>`
         : phase.id === "mechanism"
-          ? `<figure class="coarse-research-chart"><figcaption>Experiment 83 · Real291 token-position trend</figcaption>${tokenTrendChart}</figure>`
+          ? `<figure class="coarse-research-chart"><figcaption>Experiment 83 · Real291 token-position trend</figcaption><p>Layer 24 residual at every position. Each point uses a descriptive Real291 threshold matching 107/118 correct proposals (90.7% retention). Lower FPR is better; the answer-token point is post-decision only.</p>${tokenTrendChart}</figure>
+            <div class="coarse-research-table-wrap token-trend-table"><table class="coarse-research-table compact"><thead><tr><th>Token position</th><th>Layer</th><th>Component</th><th>Correct retention</th><th>Wrong rejection</th><th>False rejection</th><th>Unified FPR</th></tr></thead><tbody>${tokenTrendRows}</tbody></table></div>`
           : "";
       return `<section class="coarse-research-phase" aria-labelledby="coarse-phase-${phase.id}">
         <h4 id="coarse-phase-${phase.id}">${escapeHtml(phase.title)}</h4>
@@ -254,11 +272,12 @@
                 <span class="coarse-experiment-heading"><b>Experiment ${experiment.number} · ${escapeHtml(experiment.title)}</b><span class="research-status ${statusClass(experiment.status)}">${escapeHtml(experiment.status)}</span></span>
                 <span><strong>Question:</strong> ${escapeHtml(experiment.question)}</span>
                 <span><strong>Finding:</strong> ${escapeHtml(experiment.finding)}</span>
-                <span><strong>Decision:</strong> ${escapeHtml(experiment.decision)}</span>
               </summary>
               <div class="coarse-experiment-body">
-                ${experiment.facts.length ? `<dl>${experiment.facts.map((fact) => `<dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd>`).join("")}</dl>` : ""}
+                <h5>Experiment definition</h5>
+                <dl class="experiment-definition">${experiment.definition.map((fact) => `<dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd>`).join("")}</dl>
                 ${experimentGateRows.length ? `<h5>Standardized gate result</h5><div class="coarse-research-table-wrap"><table class="coarse-research-table compact"><thead><tr><th>Gate</th><th>Non-Real AUROC<br>overall / wrong / false</th><th>Non-Real operating point<br>retention / wrong / false</th><th>Real frozen threshold<br>retention / wrong / false</th><th>Real matched retention<br>wrong / false</th></tr></thead><tbody>${experimentGateRows.map((row) => `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${metricTriplet(row.development, "auroc")}</td><td>${metricTriplet(row.development, "operating")}</td><td>${metricTriplet(row.real_frozen, "operating")}</td><td>${matchedPair(row.real_matched)}</td></tr>`).join("")}</tbody></table></div>` : ""}
+                <h5>Decision</h5><p>${escapeHtml(experiment.decision)}</p>
                 ${experiment.limitations ? `<h5>Limitations</h5><ul>${renderTextValues(experiment.limitations)}</ul>` : ""}
               </div>
             </details>`;
