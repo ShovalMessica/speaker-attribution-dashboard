@@ -219,16 +219,52 @@
       <td>${escapeHtml(row.status.replaceAll("_", " "))}</td>
       <td>${escapeHtml(row.reason)}</td><td>${escapeHtml(row.claim_policy)}</td></tr>`).join("");
 
-  const acrossLayerChart = researchLineChart({
-    points: researchRecord.across_layers.map((row) => ({ ...row, label: `L${row.layer}` })),
-    series: [
-      { key: "overall_auroc", label: "Overall AUROC", className: "overall" },
-      { key: "wrong_auroc", label: "Wrong-attribution AUROC", className: "wrong" },
-      { key: "false_auroc", label: "False-attribution AUROC", className: "false" },
-    ],
-    yMin: 0.5,
-    yMax: 1,
-  });
+  const acrossLayerPoints = researchRecord.across_layers
+    .map((row) => ({ ...row, label: `L${row.layer}` }));
+  const acrossLayerViews = {
+    auroc: {
+      title: "Threshold-free representation quality",
+      note: "Grouped-OOF AUROC on the 1,242 non-Real proposals. Higher is better; no operating threshold is applied.",
+      chart: researchLineChart({
+        points: acrossLayerPoints,
+        series: [
+          { key: "overall_auroc", label: "Overall AUROC", className: "overall" },
+          { key: "wrong_auroc", label: "Correct vs wrong AUROC", className: "wrong" },
+          { key: "false_auroc", label: "Correct vs false AUROC", className: "false" },
+        ],
+        yMin: 0.5,
+        yMax: 1,
+      }),
+    },
+    tpr_fpr: {
+      title: "Correct TPR and unified incorrect FPR",
+      note: "At every layer, the threshold is selected inside training folds to target at least 90% correct-attribution TPR. Unified FPR is the accepted fraction of wrong + false-attribution proposals. Higher TPR and lower FPR are better.",
+      chart: researchLineChart({
+        points: acrossLayerPoints,
+        series: [
+          { key: "correct_tpr", label: "Correct-attribution TPR", className: "false" },
+          { key: "unified_fpr", label: "Unified incorrect FPR", className: "wrong" },
+        ],
+        yMin: 0,
+        yMax: 1,
+        percent: true,
+      }),
+    },
+    subtype_rejection: {
+      title: "Wrong- and false-attribution rejection",
+      note: "The same per-layer high-retention thresholds are used. Rejection is 1 − subtype FPR; higher is better.",
+      chart: researchLineChart({
+        points: acrossLayerPoints,
+        series: [
+          { key: "wrong_rejection", label: "Wrong-attribution rejection", className: "wrong" },
+          { key: "false_rejection", label: "False-attribution rejection", className: "false" },
+        ],
+        yMin: 0,
+        yMax: 1,
+        percent: true,
+      }),
+    },
+  };
   const tokenTrendChart = researchLineChart({
     points: researchRecord.token_position_trend.map((row) => ({
       ...row,
@@ -255,7 +291,18 @@
     .map((phase) => {
       const phaseExperiments = researchRecord.experiments.filter((experiment) => experiment.phase === phase.id);
       const chart = phase.id === "representation"
-        ? `<figure class="coarse-research-chart"><figcaption>Across-layer representation quality · all-1,242 residual pre-FINAL reference</figcaption>${acrossLayerChart}</figure>`
+        ? `<figure class="coarse-research-chart across-layer-chart"><figcaption>Across-layer results · all-1,242 residual pre-FINAL reference</figcaption>
+            <label class="research-chart-control">Graph
+              <select id="coarse-layer-chart-select">
+                <option value="tpr_fpr">TPR and FPR by layer</option>
+                <option value="subtype_rejection">Wrong and false rejection by layer</option>
+                <option value="auroc">AUROC by layer</option>
+              </select>
+            </label>
+            <h5 id="coarse-layer-chart-title">${escapeHtml(acrossLayerViews.tpr_fpr.title)}</h5>
+            <p id="coarse-layer-chart-note">${escapeHtml(acrossLayerViews.tpr_fpr.note)}</p>
+            <div id="coarse-layer-chart">${acrossLayerViews.tpr_fpr.chart}</div>
+          </figure>`
         : phase.id === "mechanism"
           ? `<figure class="coarse-research-chart"><figcaption>Experiment 83 · Real291 token-position trend</figcaption><p>Layer 24 residual at every position. Each point uses a descriptive Real291 threshold matching 107/118 correct proposals (90.7% retention). Lower FPR is better; the answer-token point is post-decision only.</p>${tokenTrendChart}</figure>
             <div class="coarse-research-table-wrap token-trend-table"><table class="coarse-research-table compact"><thead><tr><th>Token position</th><th>Layer</th><th>Component</th><th>Correct retention</th><th>Wrong rejection</th><th>False rejection</th><th>Unified FPR</th></tr></thead><tbody>${tokenTrendRows}</tbody></table></div>`
@@ -285,6 +332,13 @@
         </div>
       </section>`;
     }).join("");
+  const layerChartSelect = document.getElementById("coarse-layer-chart-select");
+  layerChartSelect?.addEventListener("change", () => {
+    const view = acrossLayerViews[layerChartSelect.value];
+    document.getElementById("coarse-layer-chart-title").textContent = view.title;
+    document.getElementById("coarse-layer-chart-note").textContent = view.note;
+    document.getElementById("coarse-layer-chart").innerHTML = view.chart;
+  });
   const standardizedProbe = coarseProbing.standardized_comparison;
   const standardizedFormat = (metricId, value) => metricId === "auroc"
     ? Number(value).toFixed(3)
