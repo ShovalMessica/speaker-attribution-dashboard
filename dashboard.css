@@ -422,6 +422,8 @@ circle.false { stroke: #17705a; fill: #17705a; }
 .metric-fraction > span:first-child { padding: 0 6px 4px; border-bottom: 1px solid currentColor; }
 .metric-fraction > span:last-child { padding: 4px 6px 0; }
 .metric-fraction sub { font-size: .8em; font-style: normal; }
+.paired-summary-definition td { border-top: 2px solid #cbd3df; background: #f7f9fb; }
+.paired-accuracy-formula { min-width: 260px; }
 .metric-equation { display: inline-flex; gap: 10px; align-items: center; }
 .confidence-gate-definition { max-width: 760px; }
 .confidence-gate-definition > p { margin: 0 0 12px; }
