@@ -396,7 +396,8 @@ circle.false { stroke: #17705a; fill: #17705a; }
   box-sizing: border-box;
   width: 120px;
   min-width: 120px;
-  text-align: center;
+  text-align: center !important;
+  vertical-align: middle;
   font-variant-numeric: tabular-nums;
 }
 .outcome-definition-table.raw-behavior-table td.raw-rate {
