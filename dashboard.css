@@ -307,6 +307,9 @@ h1 {
 .coarse-experiment-body dd { margin: 0; }
 .coarse-experiment-body h5 { margin: 18px 0 8px; font-size: 15px; }
 .coarse-experiment-body .experiment-definition { padding: 14px 16px; border: 1px solid var(--line); border-radius: 7px; background: #fafbfc; }
+.supporting-diagnostic-definition { display: grid; grid-template-columns: minmax(130px, 190px) minmax(0, 1fr); gap: 8px 16px; max-width: 1050px; margin: 14px 0 18px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 7px; background: #fafbfc; color: #000; }
+.supporting-diagnostic-definition dt { font-weight: 700; }
+.supporting-diagnostic-definition dd { margin: 0; }
 .coarse-research-table.compact { min-width: 1100px; }
 .token-trend-table { max-width: 1120px; margin: 0 0 22px; }
 .coarse-research-archive { margin-top: 10px; }

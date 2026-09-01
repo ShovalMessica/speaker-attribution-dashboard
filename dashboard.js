@@ -290,30 +290,17 @@
   document.getElementById("coarse-research-phases").innerHTML = researchRecord.phases
     .map((phase) => {
       const phaseExperiments = researchRecord.experiments.filter((experiment) => experiment.phase === phase.id);
-      const chart = phase.id === "representation"
-        ? `<figure class="coarse-research-chart across-layer-chart"><figcaption>Across-layer results · all-1,242 residual pre-FINAL reference</figcaption>
-            <label class="research-chart-control">Graph
-              <select id="coarse-layer-chart-select">
-                <option value="tpr_fpr">TPR and FPR by layer</option>
-                <option value="subtype_rejection">Wrong and false rejection by layer</option>
-                <option value="auroc">AUROC by layer</option>
-              </select>
-            </label>
-            <h5 id="coarse-layer-chart-title">${escapeHtml(acrossLayerViews.tpr_fpr.title)}</h5>
-            <p id="coarse-layer-chart-note">${escapeHtml(acrossLayerViews.tpr_fpr.note)}</p>
-            <div id="coarse-layer-chart">${acrossLayerViews.tpr_fpr.chart}</div>
-          </figure>`
-        : phase.id === "mechanism"
-          ? `<figure class="coarse-research-chart"><figcaption>Experiment 83 · Real291 token-position trend</figcaption><p>Layer 24 residual at every position. Each point uses a descriptive Real291 threshold matching 107/118 correct proposals (90.7% retention). Lower FPR is better; the answer-token point is post-decision only.</p>${tokenTrendChart}</figure>
-            <div class="coarse-research-table-wrap token-trend-table"><table class="coarse-research-table compact"><thead><tr><th>Token position</th><th>Layer</th><th>Component</th><th>Correct retention</th><th>Wrong rejection</th><th>False rejection</th><th>Unified FPR</th></tr></thead><tbody>${tokenTrendRows}</tbody></table></div>`
-          : "";
       return `<section class="coarse-research-phase" aria-labelledby="coarse-phase-${phase.id}">
         <h4 id="coarse-phase-${phase.id}">${escapeHtml(phase.title)}</h4>
         <p>${escapeHtml(phase.description)}</p>
-        ${chart}
         <div class="coarse-experiment-list">
           ${phaseExperiments.map((experiment) => {
             const experimentGateRows = researchRecord.gate_comparisons.filter((row) => row.number === experiment.number);
+            const experimentChart = experiment.number === 83
+              ? `<h5>Experiment 83 graph</h5>
+                <figure class="coarse-research-chart"><figcaption>Setup 20 · Real291 token-position trend</figcaption><p>Layer 24 residual at every position. Each point uses a descriptive Real291 threshold matching 107/118 correct proposals (90.7% retention). Lower FPR is better; the answer-token point is post-decision only.</p>${tokenTrendChart}</figure>
+                <div class="coarse-research-table-wrap token-trend-table"><table class="coarse-research-table compact"><thead><tr><th>Token position</th><th>Layer</th><th>Component</th><th>Correct retention</th><th>Wrong rejection</th><th>False rejection</th><th>Unified FPR</th></tr></thead><tbody>${tokenTrendRows}</tbody></table></div>`
+              : "";
             return `<details class="coarse-experiment-card">
               <summary>
                 <span class="coarse-experiment-heading"><b>Experiment ${experiment.number} · ${escapeHtml(experiment.title)}</b><span class="research-status ${statusClass(experiment.status)}">${escapeHtml(experiment.status)}</span></span>
@@ -324,6 +311,7 @@
                 <h5>Experiment definition</h5>
                 <dl class="experiment-definition">${experiment.definition.map((fact) => `<dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd>`).join("")}</dl>
                 ${experimentGateRows.length ? `<h5>Standardized gate result</h5><div class="coarse-research-table-wrap"><table class="coarse-research-table compact"><thead><tr><th>Gate</th><th>Non-Real AUROC<br>overall / wrong / false</th><th>Non-Real operating point<br>retention / wrong / false</th><th>Real frozen threshold<br>retention / wrong / false</th><th>Real matched retention<br>wrong / false</th></tr></thead><tbody>${experimentGateRows.map((row) => `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${metricTriplet(row.development, "auroc")}</td><td>${metricTriplet(row.development, "operating")}</td><td>${metricTriplet(row.real_frozen, "operating")}</td><td>${matchedPair(row.real_matched)}</td></tr>`).join("")}</tbody></table></div>` : ""}
+                ${experimentChart}
                 <h5>Decision</h5><p>${escapeHtml(experiment.decision)}</p>
                 ${experiment.limitations ? `<h5>Limitations</h5><ul>${renderTextValues(experiment.limitations)}</ul>` : ""}
               </div>
@@ -333,6 +321,9 @@
       </section>`;
     }).join("");
   const layerChartSelect = document.getElementById("coarse-layer-chart-select");
+  document.getElementById("coarse-layer-chart-title").textContent = acrossLayerViews.tpr_fpr.title;
+  document.getElementById("coarse-layer-chart-note").textContent = acrossLayerViews.tpr_fpr.note;
+  document.getElementById("coarse-layer-chart").innerHTML = acrossLayerViews.tpr_fpr.chart;
   layerChartSelect?.addEventListener("change", () => {
     const view = acrossLayerViews[layerChartSelect.value];
     document.getElementById("coarse-layer-chart-title").textContent = view.title;
