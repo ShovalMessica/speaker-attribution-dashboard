@@ -391,8 +391,23 @@ circle.false { stroke: #17705a; fill: #17705a; }
 .raw-behavior-source { margin: 0 0 10px; }
 .raw-behavior-table-wrap { width: fit-content; max-width: 100%; }
 .raw-behavior-table td[rowspan] { vertical-align: middle; }
+.raw-behavior-table th:nth-child(3),
+.raw-behavior-table th:nth-child(4),
+.raw-behavior-table th:nth-child(5),
 .raw-behavior-table td:nth-child(3),
-.raw-behavior-table td:nth-child(4) { min-width: 115px; text-align: center; }
+.raw-behavior-table td:nth-child(4),
+.raw-behavior-table td:nth-child(5) {
+  box-sizing: border-box;
+  width: 105px;
+  min-width: 105px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.outcome-definition-table.raw-behavior-table td:nth-child(5) {
+  color: #000;
+  font-size: inherit;
+  text-align: center;
+}
 .evaluation-table-wrap { width: fit-content; max-width: 100%; }
 .outcome-definition-table td[rowspan] { vertical-align: middle; }
 .outcome-definition-table { width: max-content; min-width: 0; table-layout: auto; }
