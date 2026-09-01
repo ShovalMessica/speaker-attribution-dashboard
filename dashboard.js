@@ -112,7 +112,7 @@
       <p><strong>Origin:</strong> ${escapeHtml(panel.origin)}</p>
       <p><strong>Content:</strong> ${escapeHtml(panel.content)}</p></section>`).join("");
 
-  const pairedMetricCells = (metrics, progress = null) => metrics ? `
+  const pairedMetricCells = (metrics, progress = null, reportOnly = false) => metrics ? `
     <td>${pct(metrics.accuracy)}</td>
     <td>${pct(metrics.wrong_rate)}</td>
     <td>${pct(metrics.unknown_rate)}</td>
@@ -120,17 +120,21 @@
     <td>${pct(metrics.near_90_fpr)}</td>
     <td class="no-evidence-outcome"><span class="correct-rejection">${pct(metrics.correct_rejection_rate)}</span><span class="outcome-divider">/</span><span class="false-attribution">${pct(metrics.false_attribution_rate)}</span></td>
     <td>${metrics.golden_pairs} / ${metrics.evidence_examples}</td>` :
-    `<td class="metric-missing progress-message" colspan="7">${progress?.status === "in_progress" ? "In progress · waiting for the first complete pair" : progress?.status === "paused" ? "Paused · resumable" : progress?.status === "queued" ? "Queued" : "—"}</td>`;
-  const pairedDatasetCell = (label, className, metrics, showCounts, progress = null) => {
+    `<td class="metric-missing progress-message" colspan="7">${reportOnly ? "—" : progress?.status === "in_progress" ? "In progress · waiting for the first complete pair" : progress?.status === "paused" ? "Paused · resumable" : progress?.status === "queued" ? "Queued" : "—"}</td>`;
+  const pairedDatasetCell = (label, className, metrics, showCounts, progress = null, reportOnly = false) => {
     const scheduled = progress && progress.status !== "not_scheduled";
-    const count = scheduled && progress.status !== "completed" && progress.target_variants
+    const count = reportOnly && !metrics
+      ? ""
+      : scheduled && progress.status !== "completed" && progress.target_variants
       ? progress.completed_pairs > 0
         ? `${progress.completed_pairs} / ${progress.target_pairs} complete pairs · ${progress.saved_variants} / ${progress.target_variants} variants`
         : `${progress.saved_variants} / ${progress.target_variants} variants`
       : scheduled
         ? `${progress.completed_pairs} / ${progress.target_pairs} pairs`
       : metrics ? `${metrics.evidence_examples} pairs` : "";
-    const status = progress?.status === "in_progress"
+    const status = reportOnly && !metrics
+      ? ""
+      : progress?.status === "in_progress"
       ? '<span class="evaluation-status in-progress">In progress</span>'
       : progress?.status === "paused"
         ? '<span class="evaluation-status paused">Paused · resumable</span>'
@@ -143,7 +147,7 @@
   };
   const pairedSetupRows = (
     rows,
-    { showCounts = false, showConclusions = true, includeHardSynthetic = false } = {}
+    { showCounts = false, showConclusions = true, includeHardSynthetic = false, reportOnly = false } = {}
   ) => rows.map((row) => {
     const datasets = [
       { key: "real", label: "Real data", className: "real-data" },
@@ -160,9 +164,10 @@
           dataset.className,
           row[dataset.key],
           showCounts,
-          row.progress?.[dataset.key]
+          row.progress?.[dataset.key],
+          reportOnly
         )}
-        ${pairedMetricCells(row[dataset.key], row.progress?.[dataset.key])}
+        ${pairedMetricCells(row[dataset.key], row.progress?.[dataset.key], reportOnly)}
         ${index === 0 ? `<td rowspan="${datasets.length}" class="definition-cell">${setupDetails(
           row,
           showConclusions ? row.conclusion : null,
@@ -177,8 +182,16 @@
   document.querySelector("#paired-setup-table tbody").innerHTML = pairedSetupRows(data.cross_domain_results);
   document.querySelector("#full-data-table tbody").innerHTML = pairedSetupRows(
     data.full_data_results,
-    { showCounts: true, showConclusions: false, includeHardSynthetic: true }
+    { showCounts: true, showConclusions: false, includeHardSynthetic: true, reportOnly: true }
   );
+  document.getElementById("full-evaluation-note").textContent = data.full_evaluation.scope_note;
+  document.getElementById("full-evaluation-status").textContent = data.full_evaluation.status_note;
+  document.getElementById("full-dataset-definitions").innerHTML = data.full_evaluation.datasets
+    .map((dataset) => `<section>
+      <h3>${escapeHtml(dataset.title)} · ${dataset.pairs} pairs</h3>
+      <p><strong>Source:</strong> ${escapeHtml(dataset.source)}</p>
+      <p>${escapeHtml(dataset.content)}</p>
+    </section>`).join("");
 
   const coarseProbing = data.coarse_grained_probing;
   const researchRecord = coarseProbing.research_record;

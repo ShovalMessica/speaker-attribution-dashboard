@@ -483,6 +483,21 @@ circle.false { stroke: #17705a; fill: #17705a; }
 .paired-shared-settings > strong { width: 100%; color: var(--ink); font-size: 12px; }
 .paired-shared-settings span b { color: var(--ink); }
 .paired-results-table { min-width: 980px; }
+.full-dataset-definitions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 0 0 16px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.full-dataset-definitions h3 { margin: 0 0 8px; font-size: 17px; }
+.full-dataset-definitions p { margin: 5px 0; }
+.full-evaluation-status { margin: 0 0 18px; color: var(--ink); }
+@media (max-width: 900px) {
+  .full-dataset-definitions { grid-template-columns: 1fr; gap: 18px; }
+}
 .paired-results-table th,
 .paired-results-table td { padding: 11px 9px; }
 .paired-results-table td { font-size: 13px; font-weight: 500; }
