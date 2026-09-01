@@ -381,6 +381,22 @@ circle.false { stroke: #17705a; fill: #17705a; }
 .evaluation-framework { width: 100%; }
 .evaluation-framework-section { padding: 22px 0; border-top: 1px solid var(--line); }
 .evaluation-framework-section h3 { margin: 0 0 12px; font-size: 18px; }
+.raw-model-behavior-report { margin-top: 30px; color: #000; }
+.raw-model-behavior-report > h4 { margin: 0 0 6px; font-size: 18px; }
+.raw-model-behavior-report > p { margin: 0 0 18px; }
+.raw-behavior-synthetic-source { max-width: 900px; margin: 28px 0 4px; padding-top: 18px; border-top: 1px solid var(--line); }
+.raw-behavior-dataset { max-width: 900px; padding: 17px 0 5px; }
+.raw-behavior-dataset + .raw-behavior-dataset { border-top: 1px solid var(--line); }
+.raw-behavior-dataset h5 { margin: 0 0 9px; font-size: 16px; }
+.raw-behavior-source { margin: 0 0 10px; }
+.raw-behavior-table-wrap { width: fit-content; max-width: 100%; }
+.raw-behavior-table { width: auto; min-width: 650px; color: #000; font-size: 15px; }
+.raw-behavior-table th,
+.raw-behavior-table td { padding: 9px 13px; text-align: left; white-space: normal; }
+.raw-behavior-table th[scope="rowgroup"] { min-width: 270px; vertical-align: middle; }
+.raw-behavior-table th[scope="rowgroup"] span { display: block; margin-top: 3px; font-weight: 500; }
+.raw-behavior-table td:nth-child(3),
+.raw-behavior-table td:nth-child(4) { width: 90px; text-align: right; white-space: nowrap; }
 .evaluation-table-wrap { width: fit-content; max-width: 100%; }
 .outcome-definition-table td[rowspan] { vertical-align: middle; }
 .outcome-definition-table { width: max-content; min-width: 0; table-layout: auto; }

@@ -12,6 +12,34 @@
     .replaceAll("'", "&#039;");
 
   document.getElementById("description").textContent = data.description;
+  const rawBehavior = data.raw_model_behavior;
+  const rawBehaviorTable = (dataset) => {
+    const rows = dataset.groups.map((group) => group.outcomes.map((outcome, index) => `<tr>
+      ${index === 0 ? `<th scope="rowgroup" rowspan="${group.outcomes.length}">${escapeHtml(group.type)}<span>n = ${group.total}</span></th>` : ""}
+      <td>${escapeHtml(outcome.label)}</td>
+      <td>${outcome.count}</td>
+      <td>${pct(outcome.rate)}</td>
+    </tr>`).join("")).join("");
+    const sourceSuffix = dataset.id === "real" ? ` (${escapeHtml(dataset.source)})` : "";
+    const sourceLine = dataset.id === "mediasum"
+      ? `<p class="raw-behavior-source"><strong>Source:</strong> ${escapeHtml(dataset.source)}. Evidence-only; no no-evidence variants were constructed.</p>`
+      : "";
+    return `<section class="raw-behavior-dataset raw-behavior-${escapeHtml(dataset.id)}">
+      <h5>${escapeHtml(dataset.title)}${sourceSuffix}</h5>
+      ${sourceLine}
+      <div class="table-wrap raw-behavior-table-wrap"><table class="pair-table raw-behavior-table">
+        <thead><tr><th>Type</th><th>Subtype</th><th>Count</th><th>Rate</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </section>`;
+  };
+  document.getElementById("raw-model-behavior-tables").innerHTML = rawBehavior.datasets
+    .map((dataset, index) => {
+      const syntheticSource = index === 1
+        ? `<p class="raw-behavior-synthetic-source"><strong>Synthetic source:</strong> extracted from ${escapeHtml(rawBehavior.synthetic_source)}.</p>`
+        : "";
+      return `${syntheticSource}${rawBehaviorTable(dataset)}`;
+    }).join("");
   const setupDetails = (row, conclusion = null, status = null, paired = false) => `
     <details class="setup-definition">
       <summary>View setup</summary>
