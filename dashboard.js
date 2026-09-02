@@ -299,7 +299,7 @@
     </tr>`).join("");
   document.getElementById("coarse-main-conclusions").innerHTML = researchRecord.conclusions
     .map((conclusion) => `<li>${escapeHtml(conclusion)}</li>`).join("");
-  document.getElementById("coarse-research-progress-rows").innerHTML = researchRecord.experiments
+  document.getElementById("coarse-research-progress-rows").innerHTML = researchRecord.supporting_analyses
     .map((experiment) => `<tr>
       <th scope="row">Experiment ${experiment.number}<span>${escapeHtml(experiment.title)}</span></th>
       <td>${escapeHtml(compactText(experiment.question, 260))}</td>
@@ -309,10 +309,11 @@
   document.getElementById("coarse-gate-comparison-rows").innerHTML = researchRecord.gate_comparisons
     .map((row) => `<tr>
       <th scope="row">Experiment ${row.number}<span>${escapeHtml(row.label)}</span></th>
+      <td>${escapeHtml(row.training)}</td>
+      <td><strong>${escapeHtml(row.token)}</strong><span>${escapeHtml(row.component)} · Layer ${escapeHtml(row.layer)}</span></td>
       <td>${metricTriplet(row.development, "auroc")}</td>
-      <td>${metricTriplet(row.development, "operating")}</td>
-      <td>${metricTriplet(row.real_frozen, "operating")}</td>
-      <td>${matchedPair(row.real_matched)}</td>
+      <td>${row.real_frozen ? `${pct(row.real_frozen.correct_retention)} / ${pct(row.real_frozen.unified_fpr)}` : "—"}</td>
+      <td>${row.real_frozen ? `${pct(row.real_frozen.wrong_rejection)} / ${pct(row.real_frozen.false_rejection)}` : "—"}</td>
       <td>${escapeHtml(row.decision)}</td>
     </tr>`).join("");
   document.getElementById("coarse-research-archive-rows").innerHTML = researchRecord.archive
@@ -366,61 +367,94 @@
       }),
     },
   };
-  const tokenTrendChart = researchLineChart({
-    points: researchRecord.token_position_trend.map((row) => ({
-      ...row,
-      label: row.display_name
-        .replace("Last reasoning token", "Reasoning last")
-        .replace("Generated answer token", "Answer")
-        .replace("Pre-FINAL colon", "Pre-FINAL"),
-    })),
-    series: [{ key: "unified_fpr", label: "Accepted incorrect proposals at 90.7% correct retention", className: "wrong" }],
-    yMin: 0,
-    yMax: 1,
-    percent: true,
-  });
-  const tokenTrendRows = researchRecord.token_position_trend.map((row) => `<tr>
-    <th scope="row">${escapeHtml(row.display_name)}</th>
-    <td>Layer ${row.layer}</td>
-    <td>${escapeHtml(row.component)}</td>
-    <td>${pct(row.tpr)}</td>
-    <td>${pct(1 - row.wrong_accepted / row.wrong_total)}</td>
-    <td>${pct(1 - row.false_attribution_accepted / row.false_attribution_total)}</td>
-    <td>${pct(row.unified_fpr)}</td>
-  </tr>`).join("");
-  document.getElementById("coarse-research-phases").innerHTML = researchRecord.phases
-    .map((phase) => {
-      const phaseExperiments = researchRecord.experiments.filter((experiment) => experiment.phase === phase.id);
-      return `<section class="coarse-research-phase" aria-labelledby="coarse-phase-${phase.id}">
-        <h4 id="coarse-phase-${phase.id}">${escapeHtml(phase.title)}</h4>
-        <p>${escapeHtml(phase.description)}</p>
-        <div class="coarse-experiment-list">
-          ${phaseExperiments.map((experiment) => {
-            const experimentGateRows = researchRecord.gate_comparisons.filter((row) => row.number === experiment.number);
-            const experimentChart = experiment.number === 83
-              ? `<h5>Experiment 83 graph</h5>
-                <figure class="coarse-research-chart"><figcaption>Setup 20 · Real291 token-position trend</figcaption><p>Layer 24 residual at every position. Each point uses a descriptive Real291 threshold matching 107/118 correct proposals (90.7% retention). Lower FPR is better; the answer-token point is post-decision only.</p>${tokenTrendChart}</figure>
-                <div class="coarse-research-table-wrap token-trend-table"><table class="coarse-research-table compact"><thead><tr><th>Token position</th><th>Layer</th><th>Component</th><th>Correct retention</th><th>Wrong rejection</th><th>False rejection</th><th>Unified FPR</th></tr></thead><tbody>${tokenTrendRows}</tbody></table></div>`
-              : "";
-            return `<details class="coarse-experiment-card">
-              <summary>
-                <span class="coarse-experiment-heading"><b>Experiment ${experiment.number} · ${escapeHtml(experiment.title)}</b><span class="research-status ${statusClass(experiment.status)}">${escapeHtml(experiment.status)}</span></span>
-                <span><strong>Question:</strong> ${escapeHtml(experiment.question)}</span>
-                <span><strong>Finding:</strong> ${escapeHtml(experiment.finding)}</span>
-              </summary>
-              <div class="coarse-experiment-body">
-                <h5>Experiment definition</h5>
-                <dl class="experiment-definition">${experiment.definition.map((fact) => `<dt>${escapeHtml(fact.label)}</dt><dd>${escapeHtml(fact.value)}</dd>`).join("")}</dl>
-                ${experimentGateRows.length ? `<h5>Standardized gate result</h5><div class="coarse-research-table-wrap"><table class="coarse-research-table compact"><thead><tr><th>Gate</th><th>Non-Real AUROC<br>overall / wrong / false</th><th>Non-Real operating point<br>retention / wrong / false</th><th>Real frozen threshold<br>retention / wrong / false</th><th>Real matched retention<br>wrong / false</th></tr></thead><tbody>${experimentGateRows.map((row) => `<tr><th scope="row">${escapeHtml(row.label)}</th><td>${metricTriplet(row.development, "auroc")}</td><td>${metricTriplet(row.development, "operating")}</td><td>${metricTriplet(row.real_frozen, "operating")}</td><td>${matchedPair(row.real_matched)}</td></tr>`).join("")}</tbody></table></div>` : ""}
-                ${experimentChart}
-                <h5>Decision</h5><p>${escapeHtml(experiment.decision)}</p>
-                ${experiment.limitations ? `<h5>Limitations</h5><ul>${renderTextValues(experiment.limitations)}</ul>` : ""}
-              </div>
-            </details>`;
-          }).join("")}
-        </div>
-      </section>`;
-    }).join("");
+  const probeValue = (value, kind = "percent") => {
+    if (value === null || value === undefined) return "—";
+    return kind === "decimal" ? decimal(value) : pct(value);
+  };
+  const probeCurveChart = (probe) => {
+    const width = 820;
+    const height = 370;
+    const left = 65;
+    const right = 28;
+    const top = 24;
+    const bottom = 66;
+    const xMin = 0.80;
+    const xMax = 1;
+    const yMin = 0;
+    const yMax = 1;
+    const x = (value) => left + (Number(value) - xMin) * (width - left - right) / (xMax - xMin);
+    const y = (value) => top + (yMax - Number(value)) * (height - top - bottom) / (yMax - yMin);
+    const points = probe.curve.filter((point) => Number(point.tpr) >= xMin);
+    const path = points.map((point, index) => {
+      const command = index === 0 ? "M" : "L";
+      return `${command}${x(point.tpr).toFixed(2)},${y(point.fpr).toFixed(2)}`;
+    }).join(" ");
+    const xTicks = [0.80, 0.85, 0.90, 0.95, 1.0];
+    const yTicks = [0, 0.25, 0.50, 0.75, 1.0];
+    const grid = yTicks.map((value) => `<line x1="${left}" y1="${y(value)}" x2="${width - right}" y2="${y(value)}" class="research-chart-grid" />
+      <text x="${left - 10}" y="${y(value) + 4}" text-anchor="end" class="research-chart-axis">${Math.round(value * 100)}%</text>`).join("");
+    const xLabels = xTicks.map((value) => `<text x="${x(value)}" y="${height - 36}" text-anchor="middle" class="research-chart-axis">${Math.round(value * 100)}%</text>`).join("");
+    const marker = (metrics, className, label) => metrics ? `<circle cx="${x(metrics.correct_retention)}" cy="${y(metrics.unified_fpr)}" r="6" class="probe-curve-marker ${className}"><title>${escapeHtml(label)}: TPR ${pct(metrics.correct_retention)}, FPR ${pct(metrics.unified_fpr)}</title></circle>` : "";
+    const frozenLegend = probe.real_frozen ? `<span class="probe-frozen">Frozen non-Real-selected threshold</span>` : "";
+    const matchedLegend = probe.real_matched ? `<span class="probe-matched">Descriptive Real ~90% TPR</span>` : "";
+    return `<div class="research-chart-legend probe-curve-legend"><span class="probe-sweep">Real291 threshold sweep</span>${frozenLegend}${matchedLegend}</div>
+      <svg class="research-line-chart probe-tpr-fpr-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Real291 TPR FPR curve for ${escapeHtml(probe.label)}">
+        ${grid}
+        <line x1="${x(0.9)}" y1="${top}" x2="${x(0.9)}" y2="${height - bottom}" class="probe-curve-guide" />
+        <line x1="${x(0.8)}" y1="${y(0.8)}" x2="${x(1)}" y2="${y(1)}" class="probe-curve-chance" />
+        <path d="${path}" class="probe-curve-path" />
+        ${marker(probe.real_frozen, "probe-frozen", "Frozen non-Real-selected threshold")}
+        ${marker(probe.real_matched, "probe-matched", "Descriptive Real matched-retention point")}
+        ${xLabels}
+        <text x="${(left + width - right) / 2}" y="${height - 7}" text-anchor="middle" class="research-chart-axis axis-title">TPR — accepted correct attributions</text>
+        <text x="17" y="${(top + height - bottom) / 2}" text-anchor="middle" transform="rotate(-90 17 ${(top + height - bottom) / 2})" class="research-chart-axis axis-title">FPR — accepted wrong + false attributions</text>
+      </svg>`;
+  };
+  const probeMetricsRow = (label, metrics) => `<tr>
+    <th scope="row">${escapeHtml(label)}</th>
+    <td>${probeValue(metrics?.overall_auroc, "decimal")}</td>
+    <td>${probeValue(metrics?.wrong_auroc, "decimal")}</td>
+    <td>${probeValue(metrics?.false_auroc, "decimal")}</td>
+    <td>${probeValue(metrics?.correct_retention)}</td>
+    <td>${probeValue(metrics?.unified_fpr)}</td>
+    <td>${probeValue(metrics?.wrong_rejection)}</td>
+    <td>${probeValue(metrics?.false_rejection)}</td>
+  </tr>`;
+  document.getElementById("coarse-probe-sections").innerHTML = researchRecord.probe_sections
+    .map((probe, index) => `<section class="coarse-probe-section" id="probe-${escapeHtml(probe.probe_id)}">
+      <header class="coarse-probe-header">
+        <p class="coarse-probe-number">Probe ${index + 1} · Experiment ${probe.number}</p>
+        <h4>${escapeHtml(probe.label)}</h4>
+        <p><strong>Question:</strong> ${escapeHtml(probe.question)}</p>
+      </header>
+      <dl class="experiment-definition coarse-probe-definition">
+        <dt>Training data</dt><dd>${escapeHtml(probe.training)}</dd>
+        <dt>Gate labels</dt><dd>Correct attribution = 1; wrong attribution and false attribution = 0.</dd>
+        <dt>Token position</dt><dd>${escapeHtml(probe.token)}</dd>
+        <dt>Component</dt><dd>${escapeHtml(probe.component)}</dd>
+        <dt>Layer</dt><dd>${escapeHtml(probe.layer)}</dd>
+        <dt>Probe fitting</dt><dd>${escapeHtml(probe.preprocessing)}</dd>
+        <dt>Threshold</dt><dd>${escapeHtml(probe.threshold_rule)}</dd>
+        <dt>Evaluation</dt><dd>${escapeHtml(probe.evaluation)}</dd>
+      </dl>
+      <div class="coarse-research-table-wrap">
+        <table class="coarse-research-table compact coarse-probe-metrics">
+          <thead><tr><th>Evaluation</th><th>Overall AUROC</th><th>Wrong AUROC</th><th>False AUROC</th><th>Correct TPR</th><th>Unified FPR</th><th>Wrong rejection</th><th>False rejection</th></tr></thead>
+          <tbody>
+            ${probeMetricsRow("Non-Real grouped OOF", probe.development)}
+            ${probeMetricsRow("Real291 · frozen threshold", probe.real_frozen)}
+            ${probeMetricsRow("Real291 · descriptive matched retention", probe.real_matched)}
+          </tbody>
+        </table>
+      </div>
+      <figure class="coarse-research-chart coarse-probe-curve">
+        <figcaption>Real291 TPR–FPR curve · ${escapeHtml(probe.label)}</figcaption>
+        <p>One probe only. The dashed guide marks 90% TPR; lower FPR is better.</p>
+        ${probeCurveChart(probe)}
+      </figure>
+      <div class="coarse-probe-conclusion"><strong>Conclusion</strong><p>${escapeHtml(probe.decision)}</p></div>
+      ${probe.limitations ? `<div class="coarse-probe-limitations"><strong>Limitations</strong><ul>${renderTextValues(probe.limitations)}</ul></div>` : ""}
+    </section>`).join("");
   const layerChartSelect = document.getElementById("coarse-layer-chart-select");
   document.getElementById("coarse-layer-chart-title").textContent = acrossLayerViews.tpr_fpr.title;
   document.getElementById("coarse-layer-chart-note").textContent = acrossLayerViews.tpr_fpr.note;

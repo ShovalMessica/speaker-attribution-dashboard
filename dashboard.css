@@ -317,6 +317,32 @@ h1 {
 .coarse-research-archive[open] > summary { margin-bottom: 14px; }
 .coarse-research-chart { max-width: 900px; margin: 18px 0; }
 .coarse-research-chart figcaption { margin-bottom: 8px; font-weight: 700; }
+.coarse-probe-sections { display: grid; gap: 28px; margin-top: 20px; }
+.coarse-probe-section { padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: #000; }
+.coarse-probe-header { padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.coarse-probe-header h4 { margin: 2px 0 10px; font-size: 21px; }
+.coarse-probe-header p { margin: 0; }
+.coarse-probe-number { color: #44536a; font-weight: 700; }
+.coarse-probe-definition { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 8px 18px; margin: 18px 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 8px; background: #fafbfc; }
+.coarse-probe-definition dt { font-weight: 700; }
+.coarse-probe-definition dd { margin: 0; }
+.coarse-probe-metrics { min-width: 1160px; }
+.coarse-probe-curve { width: min(900px, 100%); margin-top: 24px; }
+.coarse-probe-curve figcaption { font-size: 17px; }
+.probe-curve-path { fill: none; stroke: #256f9f; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.probe-curve-guide { stroke: #777; stroke-width: 1.5; stroke-dasharray: 6 5; }
+.probe-curve-chance { stroke: #a4acb8; stroke-width: 1.5; stroke-dasharray: 4 5; }
+.probe-curve-marker { stroke-width: 2.5; }
+.probe-curve-marker.probe-frozen { fill: #17705a; stroke: #fff; }
+.probe-curve-marker.probe-matched { fill: #fff; stroke: #bf3f3f; }
+.probe-curve-legend .probe-sweep::before { border-color: #256f9f; }
+.probe-curve-legend .probe-frozen::before { width: 10px; height: 10px; border: 0; border-radius: 50%; background: #17705a; }
+.probe-curve-legend .probe-matched::before { width: 10px; height: 10px; border: 2px solid #bf3f3f; border-radius: 50%; background: #fff; }
+.research-chart-axis.axis-title { font-size: 13px; font-weight: 700; }
+.coarse-probe-conclusion,
+.coarse-probe-limitations { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.coarse-probe-conclusion p { margin: 5px 0 0; }
+.coarse-probe-limitations ul { margin-bottom: 0; }
 .research-chart-control { display: inline-flex; align-items: center; gap: 9px; margin: 5px 0 12px; font-weight: 700; }
 .research-chart-control select { min-width: 260px; padding: 7px 10px; border: 1px solid #7b8492; border-radius: 6px; background: #fff; color: #000; font: inherit; }
 .across-layer-chart h5 { margin: 5px 0 4px; font-size: 16px; }
@@ -1262,6 +1288,9 @@ tbody tr:hover { background: #f8fafb; }
   .coarse-experiment-body { padding-left: 18px; }
   .coarse-experiment-body dl { grid-template-columns: 1fr; gap: 3px; }
   .coarse-experiment-body dd { margin-bottom: 7px; }
+  .coarse-probe-section { padding: 18px; }
+  .coarse-probe-definition { grid-template-columns: 1fr; gap: 3px; }
+  .coarse-probe-definition dd { margin-bottom: 7px; }
   .standardized-metric-chart { max-width: none; }
   .coarse-probing-facts dd { margin-bottom: 8px; }
 }
